@@ -2,12 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
-import 'reports/attendance_report_screen.dart'; // استيراد جديد لتقرير الحضور
-import 'reports/photographer_financial_report_screen.dart'; // استيراد جديد لتقرير المصورين المالي
-import 'reports/client_financial_report_screen.dart'; // استيراد جديد لتقرير العملاء المالي
+import '../../shared/widgets/loading_indicator.dart';
+import 'reports/attendance_report_screen.dart';
+import 'reports/photographer_financial_report_screen.dart';
+import 'reports/client_financial_report_screen.dart';
 
 class AdminReportsScreen extends StatelessWidget {
   const AdminReportsScreen({super.key});
@@ -21,7 +23,7 @@ class AdminReportsScreen extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
       });
-      return const CircularProgressIndicator();
+      return const LoadingIndicator();
     }
 
     return Scaffold(
