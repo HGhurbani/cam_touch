@@ -12,6 +12,9 @@ import '../features/admin/screens/booking_detail_screen.dart';
 import '../features/admin/screens/admin_photographers_management_screen.dart';
 import '../features/admin/screens/admin_events_scheduling_screen.dart';
 import '../features/admin/screens/admin_reports_screen.dart';
+import '../features/admin/screens/reports/attendance_report_screen.dart';
+import '../features/admin/screens/reports/photographer_financial_report_screen.dart';
+import '../features/admin/screens/reports/client_financial_report_screen.dart';
 import '../features/client/screens/client_rewards_screen.dart';
 import '../features/photographer/screens/photographer_deductions_screen.dart';
 import '../features/photographer/screens/photographer_schedule_screen.dart'; // استيراد جديد
@@ -28,6 +31,11 @@ class AppRouter {
   static const String adminPhotographersManagementRoute = '/admin_photographers_management';
   static const String adminEventsSchedulingRoute = '/admin_events_scheduling';
   static const String adminReportsRoute = '/admin_reports';
+  static const String attendanceReportRoute = '/admin_reports/attendance';
+  static const String photographerFinancialReportRoute =
+      '/admin_reports/photographers_financial';
+  static const String clientFinancialReportRoute =
+      '/admin_reports/clients_financial';
   static const String clientRewardsRoute = '/client_rewards';
   static const String photographerDeductionsRoute = '/photographer_deductions';
   static const String photographerScheduleRoute = '/photographer_schedule'; // مسار جديد
@@ -58,6 +66,13 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminEventsSchedulingScreen());
       case adminReportsRoute:
         return MaterialPageRoute(builder: (_) => const AdminReportsScreen());
+      case attendanceReportRoute:
+        return MaterialPageRoute(builder: (_) => const AttendanceReportScreen());
+      case photographerFinancialReportRoute:
+        return MaterialPageRoute(builder: (_) =>
+            const PhotographerFinancialReportScreen());
+      case clientFinancialReportRoute:
+        return MaterialPageRoute(builder: (_) => const ClientFinancialReportScreen());
       case clientRewardsRoute:
         return MaterialPageRoute(builder: (_) => const ClientRewardsScreen());
       case photographerDeductionsRoute:
