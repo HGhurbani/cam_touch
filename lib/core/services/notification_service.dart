@@ -73,7 +73,11 @@ class NotificationService {
   // معالجة الإشعارات عند النقر عليها (والتطبيق في الخلفية/مغلق)
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // تأكد من تهيئة Firebase هنا إذا لم يكن التطبيق قيد التشغيل بالفعل
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
     debugPrint("Handling a background message: ${message.messageId}");
     // يمكنك القيام بمعالجة البيانات أو توجيه المستخدم إلى شاشة معينة
   }
