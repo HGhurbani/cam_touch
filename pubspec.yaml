@@ -19,7 +19,6 @@ dependencies:
   firebase_messaging: ^14.7.10 # Push notifications
   firebase_storage: ^11.5.6 # Storing files like invoices
   firebase_dynamic_links: ^5.4.10 # For referral system
-  firebase_app_check: ^0.2.1 # Protects access to Firebase services
 
   # Location and Maps
   geolocator: ^11.0.0 # For getting GPS coordinates
