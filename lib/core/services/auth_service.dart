@@ -76,16 +76,8 @@ class AuthService extends ChangeNotifier {
       UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
-      final userDoc = _firestore.collection('users').doc(userCredential.user!.uid);
-      if (!(await userDoc.get()).exists) {
-        await userDoc.set({
-          'uid': userCredential.user!.uid,
-          'phoneNumber': userCredential.user!.phoneNumber,
-          'fullName': fullName,
-          'role': role.toString().split('.').last,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
+      await _createUserIfNeeded(userCredential.user!, fullName, role,
+          phoneNumber: userCredential.user!.phoneNumber);
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -107,7 +99,8 @@ class AuthService extends ChangeNotifier {
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
           final userCredential = await _auth.signInWithCredential(credential);
-          await _createUserIfNeeded(userCredential.user!, fullName, role);
+          await _createUserIfNeeded(userCredential.user!, fullName, role,
+              phoneNumber: phoneNumber);
         },
         verificationFailed: (FirebaseAuthException e) => throw e,
         codeSent: (String id, int? resendToken) async {
@@ -115,7 +108,8 @@ class AuthService extends ChangeNotifier {
           PhoneAuthCredential credential =
               PhoneAuthProvider.credential(verificationId: id, smsCode: smsCode);
           final userCredential = await _auth.signInWithCredential(credential);
-          await _createUserIfNeeded(userCredential.user!, fullName, role);
+          await _createUserIfNeeded(userCredential.user!, fullName, role,
+              phoneNumber: phoneNumber);
         },
         codeAutoRetrievalTimeout: (String id) {
           verificationId = id;
@@ -129,13 +123,66 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // إنشاء حساب باستخدام البريد الإلكتروني وكلمة المرور
+  Future<String?> signUpWithEmail({
+    required String email,
+    required String password,
+    required String fullName,
+    required UserRole role,
+    String? phoneNumber,
+  }) async {
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+
+      await userCredential.user!.sendEmailVerification();
+
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'email': email,
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          'phoneNumber': phoneNumber,
+        'fullName': fullName,
+        'role': role.toString().split('.').last,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'An unknown error occurred.';
+    }
+  }
+
+  // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
+  Future<String?> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final cred =
+          await _auth.signInWithEmailAndPassword(email: email, password: password);
+      if (!(cred.user?.emailVerified ?? false)) {
+        await cred.user?.sendEmailVerification();
+        return 'تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق منه ثم تسجيل الدخول مجدداً.';
+      }
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'An unknown error occurred.';
+    }
+  }
+
   Future<void> _createUserIfNeeded(
-      User user, String fullName, UserRole role) async {
+      User user, String fullName, UserRole role,
+      {String? phoneNumber}) async {
     final userDoc = _firestore.collection('users').doc(user.uid);
     if (!(await userDoc.get()).exists) {
       await userDoc.set({
         'uid': user.uid,
-        'phoneNumber': user.phoneNumber,
+        'email': user.email,
+        if (phoneNumber != null) 'phoneNumber': phoneNumber,
         'fullName': fullName,
         'role': role.toString().split('.').last,
         'createdAt': FieldValue.serverTimestamp(),

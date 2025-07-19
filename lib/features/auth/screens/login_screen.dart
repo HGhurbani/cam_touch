@@ -18,13 +18,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _smsController = TextEditingController();
-  String? _verificationId;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
-  // بيانات تسجيل الدخول السريع للحسابات التجريبية
+  // بيانات تسجيل الدخول السريع للحسابات التجريبية (مازالت تستخدم الهاتف)
   static const _clientPhone = '+967700000001';
   static const _photographerPhone = '+967700000002';
   static const _adminPhone = '+967700000003';
@@ -63,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _signInWithPhone() async {
+  Future<void> _signInWithEmail() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -71,27 +70,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authService = Provider.of<AuthService>(context, listen: false);
 
-    String? error;
-    if (_verificationId == null) {
-      error = await authService.sendCodeToPhone(
-        phoneNumber: _phoneController.text,
-        codeSent: (id) => setState(() => _verificationId = id),
-      );
-    } else {
-      error = await authService.verifySmsCode(
-        verificationId: _verificationId!,
-        smsCode: _smsController.text,
-        fullName: '',
-        role: UserRole.client,
-      );
-    }
+    final error = await authService.signInWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
     setState(() {
       _isLoading = false;
       _errorMessage = error;
     });
 
-    if (error == null && _verificationId != null && _smsController.text.isNotEmpty) {
+    if (error == null) {
       if (authService.userRole == UserRole.client) {
         Navigator.of(context).pushReplacementNamed(AppRouter.clientDashboardRoute);
       } else if (authService.userRole == UserRole.photographer) {
@@ -106,14 +95,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
-      await _signInWithPhone();
+      await _signInWithEmail();
     }
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
-    _smsController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -130,38 +119,37 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextFormField(
-                  controller: _phoneController,
+                  controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: "رقم الهاتف",
+                    labelText: 'البريد الإلكتروني',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return "الرجاء إدخال رقم الهاتف";
+                      return 'الرجاء إدخال البريد الإلكتروني';
                     }
-                    if (!RegExp(r'^\+?967[0-9]{8}\$').hasMatch(value)) {
-                      return "الرجاء إدخال رقم يمني صحيح";
+                    if (!value.contains('@')) {
+                      return 'الرجاء إدخال بريد إلكتروني صحيح';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (_verificationId != null)
-                  TextFormField(
-                    controller: _smsController,
-                    decoration: const InputDecoration(
-                      labelText: "رمز التحقق",
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (_verificationId != null && (value == null || value.isEmpty)) {
-                        return "أدخل رمز التحقق";
-                      }
-                      return null;
-                    },
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'كلمة المرور',
+                    border: OutlineInputBorder(),
                   ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'الرجاء إدخال كلمة المرور';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 24.0),
                 if (_errorMessage != null)
                   Padding(

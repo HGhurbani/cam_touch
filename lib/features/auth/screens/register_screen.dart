@@ -20,9 +20,9 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _smsController = TextEditingController();
-  String? _verificationId;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -37,8 +37,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     _phoneController.dispose();
-    _smsController.dispose();
     super.dispose();
   }
 
@@ -50,20 +51,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       final authService = Provider.of<AuthService>(context, listen: false);
-      String? error;
-      if (_verificationId == null) {
-        error = await authService.sendCodeToPhone(
-          phoneNumber: _phoneController.text,
-          codeSent: (id) => setState(() => _verificationId = id),
-        );
-      } else {
-        error = await authService.verifySmsCode(
-          verificationId: _verificationId!,
-          smsCode: _smsController.text,
-          fullName: _fullNameController.text,
-          role: _selectedRole,
-        );
-      }
+      final error = await authService.signUpWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        role: _selectedRole,
+        phoneNumber: _phoneController.text.isEmpty
+            ? null
+            : _phoneController.text.trim(),
+      );
 
       setState(() {
         _isLoading = false;
@@ -71,10 +67,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       if (error == null) {
-        // إذا كان التسجيل ناجحًا، عد إلى شاشة تسجيل الدخول أو توجه مباشرة إلى لوحة التحكم
         Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم التسجيل بنجاح! الرجاء تسجيل الدخول.')),
+          const SnackBar(
+              content: Text('تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني.')),
         );
       }
     }
@@ -108,38 +104,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: _phoneController,
+                  controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: "رقم الهاتف",
+                    labelText: 'البريد الإلكتروني',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return "الرجاء إدخال رقم الهاتف";
+                      return 'الرجاء إدخال البريد الإلكتروني';
                     }
-                    if (!RegExp(r'^\+?967[0-9]{8}\$').hasMatch(value)) {
-                      return "الرجاء إدخال رقم يمني صحيح";
+                    if (!value.contains('@')) {
+                      return 'الرجاء إدخال بريد إلكتروني صحيح';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (_verificationId != null)
-                  TextFormField(
-                    controller: _smsController,
-                    decoration: const InputDecoration(
-                      labelText: "رمز التحقق",
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (_verificationId != null && (value == null || value.isEmpty)) {
-                        return "أدخل رمز التحقق";
-                      }
-                      return null;
-                    },
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'كلمة المرور',
+                    border: OutlineInputBorder(),
                   ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'الرجاء إدخال كلمة المرور';
+                    }
+                    if (value.length < 6) {
+                      return 'يجب أن تكون كلمة المرور 6 أحرف على الأقل';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'رقم الهاتف (اختياري)',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty &&
+                        !RegExp(r'^\+?967[0-9]{8}\$').hasMatch(value)) {
+                      return 'الرجاء إدخال رقم يمني صحيح';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 24.0),
                 // إخفاء أو إظهار اختيار الدور بناءً على ما إذا كان المدير يقوم بالتسجيل
                 if (widget.initialRole == null) // إذا لم يتم تمرير initialRole، يمكن للمستخدم اختيار دوره
