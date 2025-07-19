@@ -166,10 +166,7 @@ class AuthService extends ChangeNotifier {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      final isDevAccount = kDebugMode && _devEmails.containsValue(email);
-      if (!isDevAccount) {
-        await userCredential.user!.sendEmailVerification();
-      }
+      // Skip sending email verification to allow immediate account access.
 
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
@@ -194,13 +191,7 @@ class AuthService extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      final cred =
-          await _auth.signInWithEmailAndPassword(email: email, password: password);
-      final isDevAccount = kDebugMode && _devEmails.containsValue(email);
-      if (!isDevAccount && !(cred.user?.emailVerified ?? false)) {
-        await cred.user?.sendEmailVerification();
-        return 'تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق منه ثم تسجيل الدخول مجدداً.';
-      }
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
