@@ -88,6 +88,7 @@ class _AdminPhotographersManagementScreenState extends State<AdminPhotographersM
                           Text('المتخصصات: ${photographer.specialties.join(', ')}'),
                           Text('التقييم: ${photographer.rating.toStringAsFixed(1)}'),
                           Text('الرصيد: \$${photographer.balance.toStringAsFixed(2)}'),
+                          Text('إجمالي الخصومات: \$${photographer.totalDeductions.toStringAsFixed(2)}'),
                         ],
                       ),
                       onTap: () {
