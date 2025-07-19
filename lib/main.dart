@@ -1,6 +1,8 @@
 // lib/main.dart
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,17 +31,34 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // يمكنك القيام بمعالجة البيانات أو توجيه المستخدم إلى شاشة معينة هنا
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter widgets are initialized
-
-  // Initialize Firebase
+Future<void> initializeFirebase() async {
+  // Initialize Firebase for the current platform
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-
-  // سجل دالة معالجة الخلفية لـ FCM
+  // Register background message handler for FCM
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  if (kDebugMode) {
+    // Use debug providers to bypass app attestation during local development
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+    );
+
+    // Skip phone number reCAPTCHA verification and SMS quotas in debug mode
+    await FirebaseAuth.instance.setSettings(
+      appVerificationDisabledForTesting: true,
+    );
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter widgets are initialized
+
+  // Initialize Firebase and development utilities
+  await initializeFirebase();
 
   // تهيئة NotificationService
   final notificationService = NotificationService();
