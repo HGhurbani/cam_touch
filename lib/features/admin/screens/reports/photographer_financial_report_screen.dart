@@ -7,6 +7,7 @@ import '../../../../core/models/user_model.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../../routes/app_router.dart';
 
 class PhotographerFinancialReportScreen extends StatelessWidget {
   const PhotographerFinancialReportScreen({super.key});
