@@ -6,7 +6,9 @@ import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import 'admin_bookings_management_screen.dart';
+// لاستعراض وإدارة بيانات المصورين
 import 'admin_photographers_management_screen.dart';
+// لجدولة المواعيد الخاصة بالفعاليات
 import 'admin_events_scheduling_screen.dart';
 import 'admin_reports_screen.dart'; // استيراد جديد
 
