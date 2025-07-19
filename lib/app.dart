@@ -5,11 +5,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/services/auth_service.dart';
-import 'features/auth/screens/login_screen.dart'; // We will create this
-import 'features/client/screens/client_dashboard_screen.dart'; // We will create this
-import 'features/photographer/screens/photographer_dashboard_screen.dart'; // We will create this
-import 'features/admin/screens/admin_dashboard_screen.dart'; // We will create this
-import 'routes/app_router.dart'; // We will create this
+import 'features/auth/screens/login_screen.dart';
+import 'features/client/screens/client_dashboard_screen.dart';
+import 'features/client/screens/client_splash_screen.dart';
+import 'features/photographer/screens/photographer_dashboard_screen.dart';
+import 'features/admin/screens/admin_dashboard_screen.dart';
+import 'routes/app_router.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -64,16 +65,16 @@ class MyApp extends StatelessWidget {
       // Use consumer to listen to auth state and redirect accordingly
       home: Consumer<AuthService>(
         builder: (context, authService, _) {
-          // This will handle initial routing based on authentication state
-          // and user role once we implement it in AuthService.
-          // For now, it will simply go to LoginScreen.
-          // Later:
-          // if (authService.user != null) {
-          //   if (authService.userRole == 'client') return ClientDashboardScreen();
-          //   if (authService.userRole == 'photographer') return PhotographerDashboardScreen();
-          //   if (authService.userRole == 'admin') return AdminDashboardScreen();
-          // }
-          return const LoginScreen(); // Default to login screen
+          if (authService.currentUser != null) {
+            if (authService.userRole == UserRole.client) {
+              return const ClientDashboardScreen();
+            } else if (authService.userRole == UserRole.photographer) {
+              return const PhotographerDashboardScreen();
+            } else if (authService.userRole == UserRole.admin) {
+              return const AdminDashboardScreen();
+            }
+          }
+          return const ClientSplashScreen();
         },
       ),
       onGenerateRoute: AppRouter.onGenerateRoute, // For named routes
