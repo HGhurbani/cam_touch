@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../core/services/auth_service.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/client/screens/client_splash_screen.dart';
 import '../features/client/screens/client_dashboard_screen.dart';
 import '../features/photographer/screens/photographer_dashboard_screen.dart';
 import '../features/admin/screens/admin_dashboard_screen.dart';
@@ -22,6 +23,7 @@ import '../features/photographer/screens/photographer_schedule_screen.dart'; // 
 
 class AppRouter {
   static const String loginRoute = '/';
+  static const String clientSplashRoute = '/splash';
   static const String registerRoute = '/register';
   static const String clientDashboardRoute = '/client_dashboard';
   static const String photographerDashboardRoute = '/photographer_dashboard';
@@ -45,6 +47,8 @@ class AppRouter {
     switch (settings.name) {
       case loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case clientSplashRoute:
+        return MaterialPageRoute(builder: (_) => const ClientSplashScreen());
       case registerRoute:
         final args = settings.arguments;
         return MaterialPageRoute(builder: (_) => RegisterScreen(initialRole: args is UserRole ? args : null));
