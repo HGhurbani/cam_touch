@@ -13,7 +13,9 @@ class BookingModel {
   final String location;
   final String serviceType; // مثلاً "تصوير حفلات", "تصوير منتجات"
   final double estimatedCost;
-  final String status; // 'pending_admin_approval', 'approved', 'rejected', 'deposit_paid', 'completed', 'cancelled'
+  // 'pending_admin_approval', 'approved', 'rejected',
+  // 'deposit_paid', 'completed', 'cancelled', 'scheduled'
+  final String status;
   final double? depositAmount; // مبلغ العربون المطلوب
   final String? paymentProofUrl; // رابط صورة إثبات الدفع
   final String? invoiceUrl; // رابط الفاتورة
@@ -79,5 +81,42 @@ class BookingModel {
       'createdAt': createdAt,
       'updatedAt': FieldValue.serverTimestamp(), // يتم تحديثه عند كل تعديل
     };
+  }
+
+  BookingModel copyWith({
+    String? clientId,
+    String? photographerId,
+    String? clientName,
+    String? clientEmail,
+    DateTime? bookingDate,
+    String? bookingTime,
+    String? location,
+    String? serviceType,
+    double? estimatedCost,
+    String? status,
+    double? depositAmount,
+    String? paymentProofUrl,
+    String? invoiceUrl,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+  }) {
+    return BookingModel(
+      id: id,
+      clientId: clientId ?? this.clientId,
+      photographerId: photographerId ?? this.photographerId,
+      clientName: clientName ?? this.clientName,
+      clientEmail: clientEmail ?? this.clientEmail,
+      bookingDate: bookingDate ?? this.bookingDate,
+      bookingTime: bookingTime ?? this.bookingTime,
+      location: location ?? this.location,
+      serviceType: serviceType ?? this.serviceType,
+      estimatedCost: estimatedCost ?? this.estimatedCost,
+      status: status ?? this.status,
+      depositAmount: depositAmount ?? this.depositAmount,
+      paymentProofUrl: paymentProofUrl ?? this.paymentProofUrl,
+      invoiceUrl: invoiceUrl ?? this.invoiceUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
