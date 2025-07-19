@@ -202,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ? const LoadingIndicator()
                     : CustomButton(
                   text: 'إنشاء حساب',
-                  onPressed: _register,
+                    onPressed: () => _register(),
                 ),
                 const SizedBox(height: 16.0),
                 TextButton(

@@ -134,7 +134,7 @@ class _ClientRewardsScreenState extends State<ClientRewardsScreen> {
                 ),
               CustomButton(
                 text: 'مشاركة رابط الإحالة',
-                onPressed: _generateAndShareReferralLink,
+                onPressed: () => _generateAndShareReferralLink(),
               ),
             ] else if (_errorMessage != null)
               Center(child: Text(_errorMessage!))

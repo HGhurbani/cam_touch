@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const LoadingIndicator() // مؤشر تحميل
                     : CustomButton( // زر مخصص
                   text: 'تسجيل الدخول',
-                  onPressed: _signIn,
+                    onPressed: () => _signIn(),
                 ),
                 const SizedBox(height: 16.0),
                 TextButton(

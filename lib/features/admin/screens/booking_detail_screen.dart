@@ -266,7 +266,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               const SizedBox(height: 16),
               CustomButton(
                 text: 'عرض الفاتورة (PDF)',
-                onPressed: _generateAndShowInvoice,
+                onPressed: () => _generateAndShowInvoice(),
                 color: Colors.grey[700],
               ),
             ],

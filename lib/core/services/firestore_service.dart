@@ -262,7 +262,7 @@ class FirestoreService {
           packageName: 'com.yourcompany.camtouch_app', // استبدل بـ Package Name الخاص بتطبيق الأندرويد
           minimumVersion: 1,
         ),
-        iosParameters: const IosParameters(
+        iosParameters: const IOSParameters(
           bundleId: 'com.yourcompany.camtouchApp', // استبدل بـ Bundle ID الخاص بتطبيق iOS
           minimumVersion: '1.0.0',
         ),
