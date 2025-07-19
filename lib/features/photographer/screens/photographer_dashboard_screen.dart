@@ -173,10 +173,16 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            if (_photographerData != null) ...[
-              Text('رصيدك الحالي: \$${_photographerData!.balance.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18)),
-              Text('إجمالي الخصومات: \$${_photographerData!.totalDeductions.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18)),
-              const SizedBox(height: 20),
+              if (_photographerData != null) ...[
+                Text(
+                  'رصيدك الحالي: \$${_photographerData!.balance.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'إجمالي الخصومات: \$${_photographerData!.totalDeductions.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
             ],
             if (_errorMessage != null)
               Padding(
@@ -212,7 +218,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                     itemBuilder: (context, index) {
                       final event = events[index];
                       final eventEndApprox = event.eventDateTime.add(const Duration(hours: 4));
-                      if (eventEndApprox.isBefore(DateTime.now().subtract(const Duration(hours: 24)))) {
+                      if (eventEndApprox.isBefore(DateTime.now().subtract(const Duration(hours: 48)))) {
                         return const SizedBox.shrink();
                       }
 
