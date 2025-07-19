@@ -24,10 +24,20 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // بيانات تسجيل الدخول السريع للحسابات التجريبية
+  // أرقام افتراضية لتحديد الدور عند التسجيل التلقائي
   static const _clientPhone = '+967700000001';
   static const _photographerPhone = '+967700000002';
   static const _adminPhone = '+967700000003';
+
+  static const Map<String, UserRole> _phoneRoles = {
+    _clientPhone: UserRole.client,
+    _photographerPhone: UserRole.photographer,
+    _adminPhone: UserRole.admin,
+  };
+
+  UserRole _determineRole(String phone) {
+    return _phoneRoles[phone] ?? UserRole.client;
+  }
 
   Future<void> _signInWithPhone() async {
     setState(() {
@@ -44,11 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
         codeSent: (id) => setState(() => _verificationId = id),
       );
     } else {
+      final role = _determineRole(_phoneController.text);
       error = await authService.verifySmsCode(
         verificationId: _verificationId!,
         smsCode: _smsController.text,
         fullName: '',
-        role: UserRole.client,
+        role: role,
       );
     }
 
@@ -151,37 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: const Text('ليس لديك حساب؟ سجل الآن'),
                 ),
-                if (kDebugMode) ...[
-                  const SizedBox(height: 32.0),
-                  const Text(
-                    'تسجيل سريع (أثناء التطوير)',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8.0),
-                  CustomButton(
-                    text: 'دخول كعميل',
-                    onPressed: () {
-                      _phoneController.text = _clientPhone;
-                      _signInWithPhone();
-                    },
-                  ),
-                  const SizedBox(height: 8.0),
-                  CustomButton(
-                    text: 'دخول كمصور',
-                    onPressed: () {
-                      _phoneController.text = _photographerPhone;
-                      _signInWithPhone();
-                    },
-                  ),
-                  const SizedBox(height: 8.0),
-                  CustomButton(
-                    text: 'دخول كمدير',
-                    onPressed: () {
-                      _phoneController.text = _adminPhone;
-                      _signInWithPhone();
-                    },
-                  ),
-                ],
+                // تم إخفاء أزرار الدخول السريع الخاصة بالتطوير
               ],
             ),
           ),
