@@ -7,6 +7,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 import 'reports/attendance_report_screen.dart';
 import 'reports/photographer_financial_report_screen.dart';
 import 'reports/client_financial_report_screen.dart';
@@ -27,9 +28,7 @@ class AdminReportsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('التقارير'),
-      ),
+      appBar: const CustomAppBar(title: 'التقارير'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

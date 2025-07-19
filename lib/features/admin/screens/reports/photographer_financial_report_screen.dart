@@ -8,6 +8,7 @@ import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../../routes/app_router.dart';
 
 class PhotographerFinancialReportScreen extends StatelessWidget {
@@ -26,9 +27,7 @@ class PhotographerFinancialReportScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تقارير المصورين المالية'),
-      ),
+      appBar: const CustomAppBar(title: 'تقارير المصورين المالية'),
       body: StreamBuilder<List<PhotographerModel>>(
         stream: firestoreService.getAllPhotographers(),
         builder: (context, snapshot) {

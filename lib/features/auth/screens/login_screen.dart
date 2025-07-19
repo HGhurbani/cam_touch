@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
-import '../../shared/widgets/custom_button.dart'; // سنقوم بإنشاء هذا لاحقًا
-import '../../shared/widgets/loading_indicator.dart'; // سنقوم بإنشاء هذا لاحقًا
+import '../../shared/widgets/custom_button.dart';
+import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول')),
+      appBar: const CustomAppBar(title: 'تسجيل الدخول'),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),

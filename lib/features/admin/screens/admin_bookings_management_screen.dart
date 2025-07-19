@@ -9,6 +9,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 import 'booking_detail_screen.dart'; // سنقوم بإنشاء هذه الشاشة تالياً
 
 class AdminBookingsManagementScreen extends StatelessWidget {
@@ -28,9 +29,7 @@ class AdminBookingsManagementScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة الحجوزات'),
-      ),
+      appBar: const CustomAppBar(title: 'إدارة الحجوزات'),
       body: StreamBuilder<List<BookingModel>>(
         stream: firestoreService.getAllBookings(), // جلب جميع الحجوزات
         builder: (context, snapshot) {

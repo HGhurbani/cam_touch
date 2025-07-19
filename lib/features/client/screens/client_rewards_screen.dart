@@ -10,6 +10,7 @@ import '../../../core/services/firestore_service.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../../routes/app_router.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class ClientRewardsScreen extends StatefulWidget {
   const ClientRewardsScreen({super.key});
@@ -103,9 +104,7 @@ class _ClientRewardsScreenState extends State<ClientRewardsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('نقاطي ومكافآتي'),
-      ),
+      appBar: const CustomAppBar(title: 'نقاطي ومكافآتي'),
       body: _isLoading
           ? const LoadingIndicator()
           : Padding(

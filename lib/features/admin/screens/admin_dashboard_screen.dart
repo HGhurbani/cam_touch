@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 import 'admin_bookings_management_screen.dart';
 // لاستعراض وإدارة بيانات المصورين
 import 'admin_photographers_management_screen.dart';
@@ -27,8 +28,8 @@ class AdminDashboardScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة تحكم المدير'),
+      appBar: CustomAppBar(
+        title: 'لوحة تحكم المدير',
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

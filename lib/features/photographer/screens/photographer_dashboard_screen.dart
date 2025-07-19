@@ -15,6 +15,7 @@ import '../../../core/models/photographer_model.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_button.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 import 'photographer_schedule_screen.dart'; // استيراد جديد لشاشة الجدول الزمني
 
 class PhotographerDashboardScreen extends StatefulWidget {
@@ -132,8 +133,8 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة تحكم المصور'),
+      appBar: CustomAppBar(
+        title: 'لوحة تحكم المصور',
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

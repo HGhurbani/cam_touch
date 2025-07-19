@@ -9,6 +9,7 @@ import '../../../core/models/booking_model.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 import 'booking_screen.dart'; // تأكد من هذا الاستيراد
 import 'client_rewards_screen.dart'; // استيراد جديد
 
@@ -53,8 +54,8 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة تحكم العميل'),
+      appBar: CustomAppBar(
+        title: 'لوحة تحكم العميل',
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

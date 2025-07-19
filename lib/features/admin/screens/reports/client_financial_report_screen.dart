@@ -12,6 +12,7 @@ import '../../../../core/services/firestore_service.dart';
 import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../../routes/app_router.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 
 class ClientFinancialReportScreen extends StatelessWidget {
   const ClientFinancialReportScreen({super.key});
@@ -38,9 +39,7 @@ class ClientFinancialReportScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تقارير العملاء والدفعات'),
-      ),
+      appBar: const CustomAppBar(title: 'تقارير العملاء والدفعات'),
       body: StreamBuilder<List<BookingModel>>(
         stream: firestoreService.getAllBookings(), // جلب جميع الحجوزات
         builder: (context, snapshot) {

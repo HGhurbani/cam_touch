@@ -14,6 +14,7 @@ import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class AdminEventsSchedulingScreen extends StatefulWidget {
   const AdminEventsSchedulingScreen({super.key});
@@ -183,9 +184,7 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('جدولة الفعاليات'),
-      ),
+      appBar: const CustomAppBar(title: 'جدولة الفعاليات'),
       body: _isLoading
           ? const LoadingIndicator()
           : SingleChildScrollView(

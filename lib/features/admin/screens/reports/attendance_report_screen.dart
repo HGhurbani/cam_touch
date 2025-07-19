@@ -13,6 +13,7 @@ import '../../../../core/services/firestore_service.dart';
 import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../../routes/app_router.dart';
+import '../../../shared/widgets/custom_app_bar.dart';
 
 class AttendanceReportScreen extends StatelessWidget {
   const AttendanceReportScreen({super.key});
@@ -40,9 +41,7 @@ class AttendanceReportScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تقارير الحضور والانصراف'),
-      ),
+      appBar: const CustomAppBar(title: 'تقارير الحضور والانصراف'),
       body: StreamBuilder<List<AttendanceModel>>(
         stream: firestoreService.getAllAttendanceRecords(),
         builder: (context, snapshot) {

@@ -10,6 +10,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class PhotographerScheduleScreen extends StatelessWidget {
   const PhotographerScheduleScreen({super.key});
@@ -30,9 +31,7 @@ class PhotographerScheduleScreen extends StatelessWidget {
     final String currentPhotographerId = authService.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('جدولي الزمني'),
-      ),
+      appBar: const CustomAppBar(title: 'جدولي الزمني'),
       body: StreamBuilder<List<EventModel>>(
         // جلب جميع الفعاليات المجدولة للمصور الحالي
         stream: firestoreService.getPhotographerEvents(currentPhotographerId),
