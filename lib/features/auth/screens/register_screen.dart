@@ -6,6 +6,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class RegisterScreen extends StatefulWidget {
   final UserRole? initialRole; // أضف هذا المتغير
@@ -82,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initialRole == UserRole.photographer ? 'إضافة مصور جديد' : 'إنشاء حساب جديد')), // تعديل العنوان
+      appBar: CustomAppBar(title: widget.initialRole == UserRole.photographer ? 'إضافة مصور جديد' : 'إنشاء حساب جديد'),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),

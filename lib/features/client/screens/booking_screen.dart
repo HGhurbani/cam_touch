@@ -11,6 +11,7 @@ import '../../../core/services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
@@ -170,9 +171,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('حجز جلسة تصوير جديدة'),
-      ),
+      appBar: const CustomAppBar(title: 'حجز جلسة تصوير جديدة'),
       body: _isLoading
           ? const LoadingIndicator()
           : SingleChildScrollView(

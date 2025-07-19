@@ -11,6 +11,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart'; // لربط التنقل (في حال الحاجة)
 import '../../shared/widgets/loading_indicator.dart';
+import '../../shared/widgets/custom_app_bar.dart';
 
 class PhotographerDeductionsScreen extends StatelessWidget {
   const PhotographerDeductionsScreen({super.key});
@@ -45,9 +46,7 @@ class PhotographerDeductionsScreen extends StatelessWidget {
     final String currentPhotographerId = authService.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تقارير الخصومات'),
-      ),
+      appBar: const CustomAppBar(title: 'تقارير الخصومات'),
       body: StreamBuilder<List<AttendanceModel>>(
         // جلب جميع سجلات الحضور للمصور الحالي
         stream: firestoreService.getPhotographerAttendanceForEvent(currentPhotographerId, ''), // يتم تجاهل eventId هنا لجلب الكل

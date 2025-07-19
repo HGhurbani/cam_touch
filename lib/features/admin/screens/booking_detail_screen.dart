@@ -14,6 +14,7 @@ import '../../../core/services/notification_service.dart'; // سنقوم بإن�
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/dialogs/confirmation_dialog.dart'; // سنقوم بإنشاء هذا لاحقاً
+import '../../shared/widgets/custom_app_bar.dart';
 
 
 class BookingDetailScreen extends StatefulWidget {
@@ -196,29 +197,27 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text('تفاصيل الحجز')),
+        appBar: const CustomAppBar(title: 'تفاصيل الحجز'),
         body: const LoadingIndicator(),
       );
     }
 
     if (_errorMessage != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('تفاصيل الحجز')),
+        appBar: const CustomAppBar(title: 'تفاصيل الحجز'),
         body: Center(child: Text(_errorMessage!)),
       );
     }
 
     if (_booking == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('تفاصيل الحجز')),
+        appBar: const CustomAppBar(title: 'تفاصيل الحجز'),
         body: const Center(child: Text('لا توجد بيانات حجز.')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تفاصيل الحجز'),
-      ),
+      appBar: const CustomAppBar(title: 'تفاصيل الحجز'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
