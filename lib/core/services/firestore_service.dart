@@ -217,10 +217,14 @@ class FirestoreService {
   // Attendance Management (Collection: 'attendance_records')
   // ------------------------------------
 
-  // إضافة سجل حضور/انصراف جديد
+  /// Adds a new attendance record to the `attendance_records` collection.
+  ///
+  /// Returns the generated document ID if the operation succeeds or `null`
+  /// if an exception is thrown.
   Future<String?> addAttendanceRecord(AttendanceModel record) async {
     try {
-      DocumentReference docRef = await _db.collection('attendance_records').add(record.toFirestore());
+      final DocumentReference docRef =
+          await _db.collection('attendance_records').add(record.toFirestore());
       return docRef.id;
     } catch (e) {
       debugPrint('Error adding attendance record: $e');
@@ -228,24 +232,28 @@ class FirestoreService {
     }
   }
 
-  // الحصول على سجلات حضور/انصراف لمصور وفعالية معينة
-  Stream<List<AttendanceModel>> getPhotographerAttendanceForEvent(String photographerId, String eventId) {
+  /// Retrieves a real-time stream of attendance records for a photographer
+  /// associated with a specific event.
+  Stream<List<AttendanceModel>> getPhotographerAttendanceForEvent(
+      String photographerId, String eventId) {
     return _db
         .collection('attendance_records')
         .where('photographerId', isEqualTo: photographerId)
         .where('eventId', isEqualTo: eventId)
         .orderBy('timestamp')
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => AttendanceModel.fromFirestore(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => AttendanceModel.fromFirestore(doc)).toList());
   }
 
-  // الحصول على جميع سجلات الحضور/الانصراف (للمدير)
+  /// Retrieves a real-time stream of all attendance records ordered by time.
   Stream<List<AttendanceModel>> getAllAttendanceRecords() {
     return _db
         .collection('attendance_records')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => AttendanceModel.fromFirestore(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => AttendanceModel.fromFirestore(doc)).toList());
   }
 
   // ------------------------------------
