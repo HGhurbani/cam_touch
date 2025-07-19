@@ -86,9 +86,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             CustomButton(
               text: 'نقاطي ومكافآتي',
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const ClientRewardsScreen()),
-                );
+                Navigator.of(context).pushNamed(AppRouter.clientRewardsRoute);
               },
               color: Colors.deepOrange, // لون مميز لزر المكافآت
             ),
