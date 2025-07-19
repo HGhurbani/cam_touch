@@ -22,7 +22,7 @@ dependencies:
 
   # Location and Maps
   geolocator: ^11.0.0 # For getting GPS coordinates
-  Maps_flutter: ^2.5.3 # For displaying maps
+  google_maps_flutter: ^2.5.3 # For displaying maps
 
   # UI/Utility Packages
   intl: ^0.19.0 # For date and number formatting, localization
