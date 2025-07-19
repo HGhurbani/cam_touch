@@ -3,6 +3,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart'; // For debugPrint
+import 'package:firebase_core/firebase_core.dart';
+import '../../firebase_options.dart';
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -71,7 +73,7 @@ class NotificationService {
   // معالجة الإشعارات عند النقر عليها (والتطبيق في الخلفية/مغلق)
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // تأكد من تهيئة Firebase هنا إذا لم يكن التطبيق قيد التشغيل بالفعل
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     debugPrint("Handling a background message: ${message.messageId}");
     // يمكنك القيام بمعالجة البيانات أو توجيه المستخدم إلى شاشة معينة
   }
