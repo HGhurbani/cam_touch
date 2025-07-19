@@ -352,7 +352,7 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
                 ),
               CustomButton(
                 text: 'إضافة فعالية',
-                onPressed: _addEvent,
+                onPressed: () => _addEvent(),
               ),
             ],
           ),

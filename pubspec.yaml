@@ -28,6 +28,7 @@ dependencies:
   intl: ^0.19.0 # For date and number formatting, localization
   provider: ^6.0.5 # A popular state management solution for Flutter
   uuid: ^4.2.2 # For generating unique identifiers (e.g., booking IDs)
+  share_plus: ^6.3.0 # For sharing referral links
 
   # PDF Generation (for invoices)
   printing: ^5.11.1 # For creating and printing PDF documents

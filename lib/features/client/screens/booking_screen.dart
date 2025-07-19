@@ -260,7 +260,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
               CustomButton(
                 text: 'إرسال طلب الحجز',
-                onPressed: _submitBookingRequest,
+                onPressed: () => _submitBookingRequest(),
               ),
             ],
           ),
