@@ -221,6 +221,11 @@ class AuthService extends ChangeNotifier {
     await _auth.signOut();
   }
 
+  // جلب دور المستخدم الحالي يدوياً بعد تسجيل الدخول
+  Future<void> refreshUserRole() async {
+    await _updateUserRole(_auth.currentUser);
+  }
+
   // دالة داخلية لتحديث دور المستخدم بناءً على بياناته في Firestore
   Future<void> _updateUserRole(User? user) async {
     if (user == null) {
