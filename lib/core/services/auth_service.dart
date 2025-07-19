@@ -94,6 +94,55 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // تسجيل دخول سريع برقم هاتف تجريبي (أثناء التطوير)
+  Future<String?> quickLogin({
+    required String phoneNumber,
+    required String smsCode,
+    required String fullName,
+    required UserRole role,
+  }) async {
+    try {
+      String? verificationId;
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          final userCredential = await _auth.signInWithCredential(credential);
+          await _createUserIfNeeded(userCredential.user!, fullName, role);
+        },
+        verificationFailed: (FirebaseAuthException e) => throw e,
+        codeSent: (String id, int? resendToken) async {
+          verificationId = id;
+          PhoneAuthCredential credential =
+              PhoneAuthProvider.credential(verificationId: id, smsCode: smsCode);
+          final userCredential = await _auth.signInWithCredential(credential);
+          await _createUserIfNeeded(userCredential.user!, fullName, role);
+        },
+        codeAutoRetrievalTimeout: (String id) {
+          verificationId = id;
+        },
+      );
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'An unknown error occurred.';
+    }
+  }
+
+  Future<void> _createUserIfNeeded(
+      User user, String fullName, UserRole role) async {
+    final userDoc = _firestore.collection('users').doc(user.uid);
+    if (!(await userDoc.get()).exists) {
+      await userDoc.set({
+        'uid': user.uid,
+        'phoneNumber': user.phoneNumber,
+        'fullName': fullName,
+        'role': role.toString().split('.').last,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
   // تسجيل الخروج
   Future<void> signOut() async {
     await _auth.signOut();

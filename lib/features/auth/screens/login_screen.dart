@@ -28,6 +28,40 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _clientPhone = '+967700000001';
   static const _photographerPhone = '+967700000002';
   static const _adminPhone = '+967700000003';
+  static const _devSmsCode = '123456';
+
+  Future<void> _quickLogin(String phone, UserRole role) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final error = await authService.quickLogin(
+      phoneNumber: phone,
+      smsCode: _devSmsCode,
+      fullName: role.toString().split('.').last,
+      role: role,
+    );
+
+    setState(() {
+      _isLoading = false;
+      _errorMessage = error;
+    });
+
+    if (error == null) {
+      if (authService.userRole == UserRole.client) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRouter.clientDashboardRoute);
+      } else if (authService.userRole == UserRole.photographer) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRouter.photographerDashboardRoute);
+      } else if (authService.userRole == UserRole.admin) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRouter.adminDashboardRoute);
+      }
+    }
+  }
 
   Future<void> _signInWithPhone() async {
     setState(() {
@@ -161,24 +195,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   CustomButton(
                     text: 'دخول كعميل',
                     onPressed: () {
-                      _phoneController.text = _clientPhone;
-                      _signInWithPhone();
+                      _quickLogin(_clientPhone, UserRole.client);
                     },
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمصور',
                     onPressed: () {
-                      _phoneController.text = _photographerPhone;
-                      _signInWithPhone();
+                      _quickLogin(_photographerPhone, UserRole.photographer);
                     },
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمدير',
                     onPressed: () {
-                      _phoneController.text = _adminPhone;
-                      _signInWithPhone();
+                      _quickLogin(_adminPhone, UserRole.admin);
                     },
                   ),
                 ],
