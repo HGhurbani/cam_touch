@@ -5,7 +5,7 @@ import '../services/auth_service.dart'; // لاستخدام UserRole Enum
 
 class UserModel {
   final String uid;
-  final String email;
+  final String phoneNumber;
   final String fullName;
   final UserRole role;
   final Timestamp? createdAt;
@@ -19,7 +19,7 @@ class UserModel {
 
   UserModel({
     required this.uid,
-    required this.email,
+    required this.phoneNumber,
     required this.fullName,
     required this.role,
     this.createdAt,
@@ -33,7 +33,7 @@ class UserModel {
         doc.data() as Map<String, dynamic>? ?? <String, dynamic>{};
     return UserModel(
       uid: doc.id,
-      email: data['email'] as String? ?? '',
+      phoneNumber: data['phoneNumber'] as String? ?? '',
       fullName: data['fullName'] as String? ?? '',
       role: UserRole.values.firstWhere(
         (e) => e.toString().split('.').last == data['role'],
@@ -48,7 +48,7 @@ class UserModel {
   // لتحويل UserModel إلى Map يمكن حفظه في Firestore
   Map<String, dynamic> toFirestore() {
     return {
-      'email': email,
+      'phoneNumber': phoneNumber,
       'fullName': fullName,
       'role': role.toString().split('.').last,
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
@@ -61,7 +61,7 @@ class UserModel {
 
   // لتحديث حقول معينة
   UserModel copyWith({
-    String? email,
+    String? phoneNumber,
     String? fullName,
     UserRole? role,
     Timestamp? createdAt,
@@ -72,7 +72,7 @@ class UserModel {
   }) {
     return UserModel(
       uid: uid,
-      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       fullName: fullName ?? this.fullName,
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
