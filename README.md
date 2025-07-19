@@ -28,19 +28,3 @@ firebase deploy --only functions
 You can verify that `processPhotographerCheckIn` runs by checking the
 Firebase Console logs after creating an `attendance_records` document.
 
-## Firebase Setup and Troubleshooting
-
-This project uses **Firebase App Check**. If you see errors similar to:
-
-```
-Error getting App Check token; using placeholder token instead.
-com.google.firebase.FirebaseException: Error returned from API. code: 403
-```
-
-make sure the **Firebase App Check API** is enabled for your project in the
-[Google Cloud Console](https://console.developers.google.com/apis/api/firebaseappcheck.googleapis.com/overview).
-It can take a few minutes after enabling for the changes to propagate.
-
-When running in debug mode, a debug App Check provider is used. Add the debug
-token printed in the Android logs to the *App Check* section of the Firebase
-Console to avoid `Too many attempts` errors.
