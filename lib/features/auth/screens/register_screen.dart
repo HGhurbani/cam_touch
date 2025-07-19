@@ -20,9 +20,9 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _smsController = TextEditingController();
+  String? _verificationId;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -37,33 +37,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _fullNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    _smsController.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      if (_passwordController.text != _confirmPasswordController.text) {
-        setState(() {
-          _errorMessage = 'كلمة المرور وتأكيد كلمة المرور غير متطابقين.';
-        });
-        return;
-      }
-
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
 
       final authService = Provider.of<AuthService>(context, listen: false);
-      String? error = await authService.registerWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-        fullName: _fullNameController.text,
-        role: _selectedRole,
-      );
+      String? error;
+      if (_verificationId == null) {
+        error = await authService.sendCodeToPhone(
+          phoneNumber: _phoneController.text,
+          codeSent: (id) => setState(() => _verificationId = id),
+        );
+      } else {
+        error = await authService.verifySmsCode(
+          verificationId: _verificationId!,
+          smsCode: _smsController.text,
+          fullName: _fullNameController.text,
+          role: _selectedRole,
+        );
+      }
 
       setState(() {
         _isLoading = false;
@@ -108,58 +108,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: _emailController,
+                  controller: _phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                    labelText: "رقم الهاتف",
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال البريد الإلكتروني';
+                      return "الرجاء إدخال رقم الهاتف";
                     }
-                    if (!value.contains('@')) {
-                      return 'الرجاء إدخال بريد إلكتروني صالح';
+                    if (!RegExp(r'^\+?967[0-9]{8}\$').hasMatch(value)) {
+                      return "الرجاء إدخال رقم يمني صحيح";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'كلمة المرور',
-                    border: OutlineInputBorder(),
+                if (_verificationId != null)
+                  TextFormField(
+                    controller: _smsController,
+                    decoration: const InputDecoration(
+                      labelText: "رمز التحقق",
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (_verificationId != null && (value == null || value.isEmpty)) {
+                        return "أدخل رمز التحقق";
+                      }
+                      return null;
+                    },
                   ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال كلمة المرور';
-                    }
-                    if (value.length < 6) {
-                      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  decoration: const InputDecoration(
-                    labelText: 'تأكيد كلمة المرور',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء تأكيد كلمة المرور';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'كلمة المرور غير متطابقة';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 24.0),
                 // إخفاء أو إظهار اختيار الدور بناءً على ما إذا كان المدير يقوم بالتسجيل
                 if (widget.initialRole == null) // إذا لم يتم تمرير initialRole، يمكن للمستخدم اختيار دوره

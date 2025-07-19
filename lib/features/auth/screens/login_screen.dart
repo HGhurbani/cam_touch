@@ -18,32 +18,46 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _smsController = TextEditingController();
+  String? _verificationId;
   bool _isLoading = false;
   String? _errorMessage;
 
   // بيانات تسجيل الدخول السريع للحسابات التجريبية
-  static const _clientEmail = 'client@test.com';
-  static const _photographerEmail = 'photographer@test.com';
-  static const _adminEmail = 'admin@test.com';
-  static const _demoPassword = 'password123';
+  static const _clientPhone = '+967700000001';
+  static const _photographerPhone = '+967700000002';
+  static const _adminPhone = '+967700000003';
 
-  Future<void> _signInWithCredentials(String email, String password) async {
+  Future<void> _signInWithPhone() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     final authService = Provider.of<AuthService>(context, listen: false);
-    String? error = await authService.signInWithEmailAndPassword(email, password);
+
+    String? error;
+    if (_verificationId == null) {
+      error = await authService.sendCodeToPhone(
+        phoneNumber: _phoneController.text,
+        codeSent: (id) => setState(() => _verificationId = id),
+      );
+    } else {
+      error = await authService.verifySmsCode(
+        verificationId: _verificationId!,
+        smsCode: _smsController.text,
+        fullName: '',
+        role: UserRole.client,
+      );
+    }
 
     setState(() {
       _isLoading = false;
       _errorMessage = error;
     });
 
-    if (error == null && authService.currentUser != null) {
+    if (error == null && _verificationId != null && _smsController.text.isNotEmpty) {
       if (authService.userRole == UserRole.client) {
         Navigator.of(context).pushReplacementNamed(AppRouter.clientDashboardRoute);
       } else if (authService.userRole == UserRole.photographer) {
@@ -58,17 +72,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
-      await _signInWithCredentials(
-        _emailController.text,
-        _passwordController.text,
-      );
+      await _signInWithPhone();
     }
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _phoneController.dispose();
+    _smsController.dispose();
     super.dispose();
   }
 
@@ -85,40 +96,38 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextFormField(
-                  controller: _emailController,
+                  controller: _phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                    labelText: "رقم الهاتف",
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال البريد الإلكتروني';
+                      return "الرجاء إدخال رقم الهاتف";
                     }
-                    if (!value.contains('@')) {
-                      return 'الرجاء إدخال بريد إلكتروني صالح';
+                    if (!RegExp(r'^\+?967[0-9]{8}\$').hasMatch(value)) {
+                      return "الرجاء إدخال رقم يمني صحيح";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'كلمة المرور',
-                    border: OutlineInputBorder(),
+                if (_verificationId != null)
+                  TextFormField(
+                    controller: _smsController,
+                    decoration: const InputDecoration(
+                      labelText: "رمز التحقق",
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (_verificationId != null && (value == null || value.isEmpty)) {
+                        return "أدخل رمز التحقق";
+                      }
+                      return null;
+                    },
                   ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال كلمة المرور';
-                    }
-                    if (value.length < 6) {
-                      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 24.0),
                 if (_errorMessage != null)
                   Padding(
@@ -147,24 +156,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text(
                     'تسجيل سريع (أثناء التطوير)',
                     style: TextStyle(color: Colors.grey),
-                  ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كعميل',
-                    onPressed: () =>
-                        _signInWithCredentials(_clientEmail, _demoPassword),
+                    onPressed: () => _phoneController.text=_clientPhone; _signInWithPhone(),
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمصور',
-                    onPressed: () => _signInWithCredentials(
-                        _photographerEmail, _demoPassword),
+                    onPressed: () => _phoneController.text=_photographerPhone; _signInWithPhone(),
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمدير',
-                    onPressed: () =>
-                        _signInWithCredentials(_adminEmail, _demoPassword),
+                    onPressed: () => _phoneController.text=_adminPhone; _signInWithPhone(),
                   ),
                 ],
               ],

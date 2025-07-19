@@ -34,40 +34,59 @@ class AuthService extends ChangeNotifier {
     });
   }
 
-  // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
-  Future<String?> signInWithEmailAndPassword(String email, String password) async {
+  // إرسال رمز التحقق إلى رقم الهاتف
+  Future<String?> sendCodeToPhone({
+    required String phoneNumber,
+    required void Function(String verificationId) codeSent,
+  }) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null; // لا يوجد خطأ
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) => throw e,
+        codeSent: (String verificationId, int? resendToken) {
+          codeSent(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          codeSent(verificationId);
+        },
+      );
+      return null;
     } on FirebaseAuthException catch (e) {
-      return e.message; // إرجاع رسالة الخطأ
+      return e.message;
     } catch (e) {
       return 'An unknown error occurred.';
     }
   }
 
-  // تسجيل مستخدم جديد بالبريد الإلكتروني وكلمة المرور وتحديد دوره
-  Future<String?> registerWithEmailAndPassword({
-    required String email,
-    required String password,
+  // تأكيد رمز الـ SMS وتسجيل/تسجيل دخول المستخدم
+  Future<String?> verifySmsCode({
+    required String verificationId,
+    required String smsCode,
     required String fullName,
     required UserRole role,
   }) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
       );
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
 
-      // حفظ بيانات المستخدم الإضافية في Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'email': email,
-        'fullName': fullName,
-        'role': role.toString().split('.').last, // تحويل enum إلى string (مثال: 'client')
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      return null; // لا يوجد خطأ
+      final userDoc = _firestore.collection('users').doc(userCredential.user!.uid);
+      if (!(await userDoc.get()).exists) {
+        await userDoc.set({
+          'uid': userCredential.user!.uid,
+          'phoneNumber': userCredential.user!.phoneNumber,
+          'fullName': fullName,
+          'role': role.toString().split('.').last,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
