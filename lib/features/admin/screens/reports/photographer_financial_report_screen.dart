@@ -6,6 +6,7 @@ import '../../../../core/models/photographer_model.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
+import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../../routes/app_router.dart';
 

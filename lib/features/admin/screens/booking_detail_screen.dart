@@ -195,9 +195,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         appBar: AppBar(title: Text('تفاصيل الحجز')),
-        body: LoadingIndicator(),
+        body: const LoadingIndicator(),
       );
     }
 

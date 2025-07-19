@@ -1,6 +1,7 @@
 // lib/routes/app_router.dart
 
 import 'package:flutter/material.dart';
+import '../core/services/auth_service.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/client/screens/client_dashboard_screen.dart';
