@@ -50,7 +50,11 @@ class AdminDashboardScreen extends StatelessWidget {
             CustomButton(
               text: 'إدارة الحجوزات',
               onPressed: () {
-                Navigator.of(context).pushNamed(AppRouter.adminBookingsManagementRoute);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AdminBookingsManagementScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 16),
