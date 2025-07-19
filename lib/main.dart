@@ -16,7 +16,14 @@ import 'firebase_options.dart';
 // سجل دالة معالجة الإشعارات في الخلفية (يجب أن تكون خارج دالة main)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Firebase might already be initialized when the app is running. Only
+  // initialize if there are no existing Firebase apps to avoid the
+  // [core/duplicate-app] exception.
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   debugPrint("Handling a background message: ${message.messageId}");
   // يمكنك القيام بمعالجة البيانات أو توجيه المستخدم إلى شاشة معينة هنا
 }
