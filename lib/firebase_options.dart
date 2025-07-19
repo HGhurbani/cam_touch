@@ -22,21 +22,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    measurementId: 'YOUR_MEASUREMENT_ID',
+    apiKey: 'AIzaSyAiImC58YZKweIvgnHv8TBesdTiC5i6Cwk',
+    appId: '1:1058080841852:web:d268ba06cf1485ad0669f9',
+    messagingSenderId: '1058080841852',
+    projectId: 'kisko-jump',
+    authDomain: 'kisko-jump.firebaseapp.com',
+    storageBucket: 'kisko-jump.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyAK2zpkft3iF8FSdHoO2n32KyMGQBkaM9w',
+    appId: '1:1058080841852:android:63584a43056e0cf10669f9',
+    messagingSenderId: '1058080841852',
+    projectId: 'kisko-jump',
+    storageBucket: 'kisko-jump.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
