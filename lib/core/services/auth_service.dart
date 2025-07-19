@@ -26,6 +26,13 @@ class AuthService extends ChangeNotifier {
   UserRole _userRole = UserRole.unauthenticated;
   UserRole get userRole => _userRole;
 
+  // عناوين البريد الإلكتروني للحسابات التجريبية المستخدمة في وضع التطوير
+  static const Map<UserRole, String> _devEmails = {
+    UserRole.client: 'dev_client@example.com',
+    UserRole.photographer: 'dev_photographer@example.com',
+    UserRole.admin: 'dev_admin@example.com',
+  };
+
   AuthService() {
     // الاستماع لتغييرات حالة المصادقة
     _auth.authStateChanges().listen((User? user) {
@@ -98,13 +105,7 @@ class AuthService extends ChangeNotifier {
       if (kDebugMode) {
         // In debug mode, use email/password authentication to avoid phone
         // verification limits during development.
-        final devEmails = {
-          UserRole.client: 'dev_client@example.com',
-          UserRole.photographer: 'dev_photographer@example.com',
-          UserRole.admin: 'dev_admin@example.com',
-        };
-
-        final email = devEmails[role]!;
+        final email = _devEmails[role]!;
 
         try {
           final cred = await _auth.signInWithEmailAndPassword(
@@ -165,8 +166,10 @@ class AuthService extends ChangeNotifier {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-
-      await userCredential.user!.sendEmailVerification();
+      final isDevAccount = kDebugMode && _devEmails.containsValue(email);
+      if (!isDevAccount) {
+        await userCredential.user!.sendEmailVerification();
+      }
 
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
@@ -193,7 +196,8 @@ class AuthService extends ChangeNotifier {
     try {
       final cred =
           await _auth.signInWithEmailAndPassword(email: email, password: password);
-      if (!(cred.user?.emailVerified ?? false)) {
+      final isDevAccount = kDebugMode && _devEmails.containsValue(email);
+      if (!isDevAccount && !(cred.user?.emailVerified ?? false)) {
         await cred.user?.sendEmailVerification();
         return 'تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق منه ثم تسجيل الدخول مجدداً.';
       }
