@@ -264,14 +264,14 @@ class FirestoreService {
   Future<String?> createReferralLink(String userId) async {
     try {
       final DynamicLinkParameters parameters = DynamicLinkParameters(
-        uriPrefix: 'https://camtouch.page.link', // استبدل بـ Dynamic Link Domain الخاص بك
-        link: Uri.parse('https://camtouch.com/referral?referredBy=$userId'), // رابط عميق للتطبيق
+        uriPrefix: 'https://camtouch.page.link',
+        link: Uri.parse('https://camtouch.com/referral?referredBy=$userId'),
         androidParameters: const AndroidParameters(
-          packageName: 'com.yourcompany.camtouch_app', // استبدل بـ Package Name الخاص بتطبيق الأندرويد
+          packageName: 'com.cam.touch.cam_touch_app',
           minimumVersion: 1,
         ),
         iosParameters: const IOSParameters(
-          bundleId: 'com.yourcompany.camtouchApp', // استبدل بـ Bundle ID الخاص بتطبيق iOS
+          bundleId: 'com.cam.touch.camTouchApp',
           minimumVersion: '1.0.0',
         ),
         socialMetaTagParameters: SocialMetaTagParameters(
