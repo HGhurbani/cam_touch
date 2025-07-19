@@ -15,7 +15,6 @@ import '../../../core/models/photographer_model.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_button.dart';
-import 'photographer_deductions_screen.dart';
 import 'photographer_schedule_screen.dart'; // استيراد جديد لشاشة الجدول الزمني
 
 class PhotographerDashboardScreen extends StatefulWidget {
@@ -146,9 +145,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
           IconButton(
             icon: const Icon(Icons.receipt_long),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const PhotographerDeductionsScreen()),
-              );
+              Navigator.of(context).pushNamed(AppRouter.photographerDeductionsRoute);
             },
             tooltip: 'تقارير الخصومات',
           ),
