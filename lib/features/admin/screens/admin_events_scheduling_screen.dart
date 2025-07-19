@@ -173,6 +173,7 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
 
     if (authService.currentUser == null || authService.userRole != UserRole.admin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

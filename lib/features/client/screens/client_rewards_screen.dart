@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart'; // لتسهيل مشاركة الروابط
+import 'package:share_plus/share_plus.dart' as share_plus; // لتسهيل مشاركة الروابط
 
 import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_service.dart';
@@ -78,7 +78,7 @@ class _ClientRewardsScreenState extends State<ClientRewardsScreen> {
       }
 
       // مشاركة الرابط باستخدام share_plus
-      await Share.share('مرحبًا! استخدم تطبيق Cam Touch لحجز جلسات التصوير الاحترافية. سجل الآن عبر رابط الإحالة الخاص بي لتحصل على مكافآت!\n$link');
+      await share_plus.Share.share('مرحبًا! استخدم تطبيق Cam Touch لحجز جلسات التصوير الاحترافية. سجل الآن عبر رابط الإحالة الخاص بي لتحصل على مكافآت!\n$link');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم مشاركة رابط الإحالة بنجاح!')),
       );
