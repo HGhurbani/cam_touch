@@ -22,7 +22,7 @@ import '../features/photographer/screens/photographer_deductions_screen.dart';
 import '../features/photographer/screens/photographer_schedule_screen.dart'; // استيراد جديد
 
 class AppRouter {
-  static const String loginRoute = '/';
+  static const String loginRoute = '/login';
   static const String clientSplashRoute = '/splash';
   static const String registerRoute = '/register';
   static const String clientDashboardRoute = '/client_dashboard';
