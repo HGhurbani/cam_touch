@@ -1,6 +1,8 @@
 // lib/main.dart
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +36,13 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Enable Firebase App Check to obtain valid tokens instead of placeholders
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
   );
 
   // سجل دالة معالجة الخلفية لـ FCM
