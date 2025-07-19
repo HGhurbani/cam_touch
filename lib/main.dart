@@ -10,7 +10,7 @@ import 'app.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/firestore_service.dart';
 import 'core/services/notification_service.dart';
-import 'core/services/location_service.dart'; // استيراد جديد
+import 'core/services/location_service.dart';
 import 'firebase_options.dart';
 
 // سجل دالة معالجة الإشعارات في الخلفية (يجب أن تكون خارج دالة main)
@@ -55,7 +55,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthService()),
         Provider(create: (_) => FirestoreService()),
         Provider(create: (_) => notificationService),
-        Provider(create: (_) => LocationService()), // أضف LocationService هنا
+        Provider(create: (_) => LocationService()),
       ],
       child: const MyApp(),
     ),
