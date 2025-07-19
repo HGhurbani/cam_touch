@@ -91,6 +91,8 @@ class AdminBookingsManagementScreen extends StatelessWidget {
         return Icons.payment;
       case 'completed':
         return Icons.done_all;
+      case 'scheduled':
+        return Icons.event_available;
       default:
         return Icons.info_outline;
     }
@@ -108,6 +110,8 @@ class AdminBookingsManagementScreen extends StatelessWidget {
         return Colors.blue;
       case 'completed':
         return Colors.purple;
+      case 'scheduled':
+        return Colors.teal;
       default:
         return Colors.grey;
     }
