@@ -156,20 +156,30 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text(
                     'تسجيل سريع (أثناء التطوير)',
                     style: TextStyle(color: Colors.grey),
+                  ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كعميل',
-                    onPressed: () => _phoneController.text=_clientPhone; _signInWithPhone(),
+                    onPressed: () {
+                      _phoneController.text = _clientPhone;
+                      _signInWithPhone();
+                    },
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمصور',
-                    onPressed: () => _phoneController.text=_photographerPhone; _signInWithPhone(),
+                    onPressed: () {
+                      _phoneController.text = _photographerPhone;
+                      _signInWithPhone();
+                    },
                   ),
                   const SizedBox(height: 8.0),
                   CustomButton(
                     text: 'دخول كمدير',
-                    onPressed: () => _phoneController.text=_adminPhone; _signInWithPhone(),
+                    onPressed: () {
+                      _phoneController.text = _adminPhone;
+                      _signInWithPhone();
+                    },
                   ),
                 ],
               ],
