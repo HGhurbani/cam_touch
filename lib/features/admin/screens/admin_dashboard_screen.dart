@@ -10,7 +10,7 @@ import 'admin_bookings_management_screen.dart';
 import 'admin_photographers_management_screen.dart';
 // لجدولة المواعيد الخاصة بالفعاليات
 import 'admin_events_scheduling_screen.dart';
-import 'admin_reports_screen.dart'; // استيراد جديد
+import 'admin_reports_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -77,7 +77,7 @@ class AdminDashboardScreen extends StatelessWidget {
             CustomButton(
               text: 'التقارير',
               onPressed: () {
-                Navigator.of(context).pushNamed(AppRouter.adminReportsRoute); // ربط الزر بالشاشة الجديدة
+                Navigator.of(context).pushNamed(AppRouter.adminReportsRoute);
               },
               color: Colors.teal, // لون مميز لزر التقارير
             ),
