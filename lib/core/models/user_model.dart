@@ -9,8 +9,13 @@ class UserModel {
   final String fullName;
   final UserRole role;
   final Timestamp? createdAt;
-  final int points; // حقل جديد: نقاط المكافآت
-  final String? referralLink; // حقل جديد: رابط الإحالة الفريد
+  /// Reward points accumulated by the user.
+  ///
+  /// Defaults to zero when not provided.
+  final int points;
+
+  /// Unique dynamic referral link for the user, if any.
+  final String? referralLink;
 
   UserModel({
     required this.uid,
@@ -24,18 +29,19 @@ class UserModel {
 
   // Factory constructor لإنشاء UserModel من مستند Firestore
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+    final Map<String, dynamic> data =
+        doc.data() as Map<String, dynamic>? ?? <String, dynamic>{};
     return UserModel(
       uid: doc.id,
-      email: data['email'] ?? '',
-      fullName: data['fullName'] ?? '',
+      email: data['email'] as String? ?? '',
+      fullName: data['fullName'] as String? ?? '',
       role: UserRole.values.firstWhere(
-            (e) => e.toString().split('.').last == data['role'],
+        (e) => e.toString().split('.').last == data['role'],
         orElse: () => UserRole.unknown,
       ),
       createdAt: data['createdAt'] as Timestamp?,
-      points: data['points'] ?? 0, // قراءة النقاط
-      referralLink: data['referralLink'], // قراءة رابط الإحالة
+      points: (data['points'] as num?)?.toInt() ?? 0,
+      referralLink: data['referralLink'] as String?,
     );
   }
 
@@ -46,7 +52,9 @@ class UserModel {
       'fullName': fullName,
       'role': role.toString().split('.').last,
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
+      // persist the user's reward points
       'points': points,
+      // store the referral link if it exists
       'referralLink': referralLink,
     };
   }
@@ -57,8 +65,10 @@ class UserModel {
     String? fullName,
     UserRole? role,
     Timestamp? createdAt,
-    int? points, // إضافة النقاط لـ copyWith
-    String? referralLink, // إضافة رابط الإحالة لـ copyWith
+    /// New reward points value to override the current one.
+    int? points,
+    /// New referral link to override the current one.
+    String? referralLink,
   }) {
     return UserModel(
       uid: uid,
