@@ -34,7 +34,7 @@ class EventModel {
   });
 
   factory EventModel.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return EventModel(
       id: doc.id,
       bookingId: data['bookingId'] ?? '',
@@ -45,7 +45,7 @@ class EventModel {
       location: data['location'] ?? '',
       requiredArrivalTimeOffsetMinutes: (data['requiredArrivalTimeOffsetMinutes'] as num?)?.toDouble() ?? 30.0,
       lateDeductionAmount: (data['lateDeductionAmount'] as num?)?.toDouble() ?? 0.0,
-      gracePeriodMinutes: data['gracePeriodMinutes'] ?? 10,
+      gracePeriodMinutes: (data['gracePeriodMinutes'] as num?)?.toInt() ?? 10,
       status: data['status'] ?? 'scheduled',
       createdAt: data['createdAt'] as Timestamp,
       updatedAt: data['updatedAt'] as Timestamp?,
@@ -69,3 +69,4 @@ class EventModel {
     };
   }
 }
+
