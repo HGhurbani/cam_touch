@@ -77,7 +77,9 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             CustomButton(
               text: 'حجز جلسة تصوير جديدة',
               onPressed: () {
-                Navigator.of(context).pushNamed(AppRouter.bookingRoute);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BookingScreen()),
+                );
               },
             ),
             const SizedBox(height: 16), // مسافة بين الأزرار
