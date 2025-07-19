@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart'; // لفتح الروابط مثل إثبات الدفع
+import 'package:url_launcher/url_launcher.dart'; // لفتح الروابط مثل إثبات الدفع أو الفاتورة
 import 'package:printing/printing.dart'; // لتوليد وعرض PDF
 import 'package:pdf/pdf.dart'; // لتنسيق PDF
 import 'package:pdf/widgets.dart' as pw; // للتعامل مع مكونات PDF
@@ -83,13 +83,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       }
       await firestoreService.updateBooking(widget.bookingId, updateData);
 
-      // إرسال إشعار للعميل
-      // ستحتاج لـ NotificationService وربطها بـ FCM
-      // await notificationService.sendNotificationToUser(
-      //   _booking!.clientId,
-      //   'تحديث الحجز',
-      //   'حالة حجزك لـ "${_booking!.serviceType}" أصبحت: $newStatus',
-      // );
+      // إرسال إشعار للعميل (تنفيذ مبدئي باستخدام NotificationService)
+      await notificationService.sendNotificationToUser(
+        _booking!.clientId,
+        'تحديث الحجز',
+        'حالة حجزك لـ "${_booking!.serviceType}" أصبحت: $newStatus',
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('تم تحديث حالة الحجز إلى: $newStatus')),
@@ -176,6 +175,19 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       setState(() => _errorMessage = 'فشل توليد أو عرض الفاتورة: $e');
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  // دالة لفتح أي رابط URL (إثبات الدفع أو الفاتورة)
+  Future<void> _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح الرابط المطلوب.')),
+      );
     }
   }
 
@@ -269,20 +281,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 onPressed: () => _generateAndShowInvoice(),
                 color: Colors.grey[700],
               ),
+              if (_booking!.invoiceUrl != null) ...[
+                const SizedBox(height: 8),
+                CustomButton(
+                  text: 'فتح الفاتورة المحفوظة',
+                  onPressed: () => _launchURL(_booking!.invoiceUrl!),
+                  color: Colors.teal,
+                ),
+              ],
             ],
             if (_booking!.paymentProofUrl != null) ...[
               const SizedBox(height: 16),
               CustomButton(
                 text: 'عرض إثبات الدفع',
-                onPressed: () async {
-                  if (await canLaunchUrl(Uri.parse(_booking!.paymentProofUrl!))) {
-                    await launchUrl(Uri.parse(_booking!.paymentProofUrl!));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تعذر فتح رابط إثبات الدفع.')),
-                    );
-                  }
-                },
+                onPressed: () => _launchURL(_booking!.paymentProofUrl!),
                 color: Colors.purple,
               ),
             ],
