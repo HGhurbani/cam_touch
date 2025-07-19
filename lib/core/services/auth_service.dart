@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 // Enum لتعريف أدوار المستخدمين
 enum UserRole {
@@ -94,28 +95,58 @@ class AuthService extends ChangeNotifier {
     required UserRole role,
   }) async {
     try {
-      String? verificationId;
-      await _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          final userCredential = await _auth.signInWithCredential(credential);
-          await _createUserIfNeeded(userCredential.user!, fullName, role,
+      if (kDebugMode) {
+        // In debug mode, use email/password authentication to avoid phone
+        // verification limits during development.
+        final devEmails = {
+          UserRole.client: 'dev_client@example.com',
+          UserRole.photographer: 'dev_photographer@example.com',
+          UserRole.admin: 'dev_admin@example.com',
+        };
+
+        final email = devEmails[role]!;
+
+        try {
+          final cred = await _auth.signInWithEmailAndPassword(
+              email: email, password: smsCode);
+          await _createUserIfNeeded(cred.user!, fullName, role,
               phoneNumber: phoneNumber);
-        },
-        verificationFailed: (FirebaseAuthException e) => throw e,
-        codeSent: (String id, int? resendToken) async {
-          verificationId = id;
-          PhoneAuthCredential credential =
-              PhoneAuthProvider.credential(verificationId: id, smsCode: smsCode);
-          final userCredential = await _auth.signInWithCredential(credential);
-          await _createUserIfNeeded(userCredential.user!, fullName, role,
-              phoneNumber: phoneNumber);
-        },
-        codeAutoRetrievalTimeout: (String id) {
-          verificationId = id;
-        },
-      );
-      return null;
+          return null;
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'user-not-found') {
+            final newCred = await _auth.createUserWithEmailAndPassword(
+                email: email, password: smsCode);
+            await _createUserIfNeeded(newCred.user!, fullName, role,
+                phoneNumber: phoneNumber);
+            return null;
+          }
+          return e.message;
+        }
+      } else {
+        String? verificationId;
+        await _auth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            final userCredential = await _auth.signInWithCredential(credential);
+            await _createUserIfNeeded(userCredential.user!, fullName, role,
+                phoneNumber: phoneNumber);
+          },
+          verificationFailed: (FirebaseAuthException e) => throw e,
+          codeSent: (String id, int? resendToken) async {
+            verificationId = id;
+            PhoneAuthCredential credential =
+                PhoneAuthProvider.credential(
+                    verificationId: id, smsCode: smsCode);
+            final userCredential = await _auth.signInWithCredential(credential);
+            await _createUserIfNeeded(userCredential.user!, fullName, role,
+                phoneNumber: phoneNumber);
+          },
+          codeAutoRetrievalTimeout: (String id) {
+            verificationId = id;
+          },
+        );
+        return null;
+      }
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
