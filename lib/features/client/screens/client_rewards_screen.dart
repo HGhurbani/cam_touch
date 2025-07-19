@@ -9,6 +9,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../../routes/app_router.dart';
 
 class ClientRewardsScreen extends StatefulWidget {
   const ClientRewardsScreen({super.key});
@@ -91,6 +92,16 @@ class _ClientRewardsScreenState extends State<ClientRewardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
+    if (authService.currentUser == null ||
+        authService.userRole != UserRole.client) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
+      });
+      return const LoadingIndicator();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('نقاطي ومكافآتي'),
