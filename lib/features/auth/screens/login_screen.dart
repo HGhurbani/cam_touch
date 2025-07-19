@@ -43,6 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
       role: role,
     );
 
+    // Ensure role is loaded before navigating
+    await authService.refreshUserRole();
+
     setState(() {
       _isLoading = false;
       _errorMessage = error;
@@ -75,6 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
       password: _passwordController.text.trim(),
     );
 
+    // Ensure role is loaded before navigating
+    await authService.refreshUserRole();
+
     setState(() {
       _isLoading = false;
       _errorMessage = error;
@@ -87,8 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacementNamed(AppRouter.photographerDashboardRoute);
       } else if (authService.userRole == UserRole.admin) {
         Navigator.of(context).pushReplacementNamed(AppRouter.adminDashboardRoute);
-      } else {
-        Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
       }
     }
   }
