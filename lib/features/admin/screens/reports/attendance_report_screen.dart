@@ -11,6 +11,7 @@ import '../../../../core/models/event_model.dart'; // لجلب اسم الفعا
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../../routes/app_router.dart';
 
 class AttendanceReportScreen extends StatelessWidget {
   const AttendanceReportScreen({super.key});
