@@ -1,6 +1,7 @@
 // lib/features/auth/screens/login_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
@@ -22,40 +23,45 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // بيانات تسجيل الدخول السريع للحسابات التجريبية
+  static const _clientEmail = 'client@test.com';
+  static const _photographerEmail = 'photographer@test.com';
+  static const _adminEmail = 'admin@test.com';
+  static const _demoPassword = 'password123';
+
+  Future<void> _signInWithCredentials(String email, String password) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final authService = Provider.of<AuthService>(context, listen: false);
+    String? error = await authService.signInWithEmailAndPassword(email, password);
+
+    setState(() {
+      _isLoading = false;
+      _errorMessage = error;
+    });
+
+    if (error == null && authService.currentUser != null) {
+      if (authService.userRole == UserRole.client) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.clientDashboardRoute);
+      } else if (authService.userRole == UserRole.photographer) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.photographerDashboardRoute);
+      } else if (authService.userRole == UserRole.admin) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.adminDashboardRoute);
+      } else {
+        Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
+      }
+    }
+  }
+
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final authService = Provider.of<AuthService>(context, listen: false);
-      String? error = await authService.signInWithEmailAndPassword(
+      await _signInWithCredentials(
         _emailController.text,
         _passwordController.text,
       );
-
-      setState(() {
-        _isLoading = false;
-        _errorMessage = error;
-      });
-
-      if (error == null && authService.currentUser != null) {
-        // إذا كان تسجيل الدخول ناجحًا، قم بالتوجيه بناءً على الدور
-        // هذا الجزء سيعتمد على منطق تحديد الدور في AuthService
-        // في الوقت الحالي، سنقوم فقط بالتحقق من وجود المستخدم
-        // لاحقًا، سنستخدم authService.userRole لتحديد المسار الصحيح
-        if (authService.userRole == UserRole.client) {
-          Navigator.of(context).pushReplacementNamed(AppRouter.clientDashboardRoute);
-        } else if (authService.userRole == UserRole.photographer) {
-          Navigator.of(context).pushReplacementNamed(AppRouter.photographerDashboardRoute);
-        } else if (authService.userRole == UserRole.admin) {
-          Navigator.of(context).pushReplacementNamed(AppRouter.adminDashboardRoute);
-        } else {
-          // دور غير معروف أو لم يتم تحميله بعد، يمكن إعادة التوجيه إلى شاشة ترحيب أو تسجيل خروج
-          Navigator.of(context).pushReplacementNamed(AppRouter.loginRoute);
-        }
-      }
     }
   }
 
@@ -136,6 +142,31 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: const Text('ليس لديك حساب؟ سجل الآن'),
                 ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 32.0),
+                  const Text(
+                    'تسجيل سريع (أثناء التطوير)',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8.0),
+                  CustomButton(
+                    text: 'دخول كعميل',
+                    onPressed: () =>
+                        _signInWithCredentials(_clientEmail, _demoPassword),
+                  ),
+                  const SizedBox(height: 8.0),
+                  CustomButton(
+                    text: 'دخول كمصور',
+                    onPressed: () => _signInWithCredentials(
+                        _photographerEmail, _demoPassword),
+                  ),
+                  const SizedBox(height: 8.0),
+                  CustomButton(
+                    text: 'دخول كمدير',
+                    onPressed: () =>
+                        _signInWithCredentials(_adminEmail, _demoPassword),
+                  ),
+                ],
               ],
             ),
           ),
