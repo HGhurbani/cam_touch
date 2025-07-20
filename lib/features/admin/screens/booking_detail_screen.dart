@@ -305,6 +305,54 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
+  // تعديل تكلفة الحجز
+  Future<void> _editCost() async {
+    final controller =
+        TextEditingController(text: _booking!.estimatedCost.toString());
+    final newCost = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تعديل تكلفة الحجز'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'التكلفة الجديدة'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              Navigator.pop(context, value);
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+
+    if (newCost != null) {
+      setState(() => _isLoading = true);
+      try {
+        final firestoreService =
+            Provider.of<FirestoreService>(context, listen: false);
+        await firestoreService.updateBooking(
+            widget.bookingId, {'estimatedCost': newCost});
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم تحديث تكلفة الحجز')));
+        await _fetchBookingDetails();
+      } catch (e) {
+        setState(() {
+          _errorMessage = 'فشل تحديث التكلفة: $e';
+        });
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -351,6 +399,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             if (_booking!.estimatedCost > 0)
               Text('تكلفة الحجز: ${_booking!.estimatedCost.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
+            if (_booking!.estimatedCost > 0) ...[
+              const SizedBox(height: 8),
+              CustomButton(
+                text: 'تعديل التكلفة',
+                onPressed: _editCost,
+                color: Colors.blueGrey,
+              ),
+            ],
             if (_booking!.paidAmount > 0)
               Text('المدفوع: ${_booking!.paidAmount.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
