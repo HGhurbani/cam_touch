@@ -24,7 +24,7 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
   DateTime? _fromDate;
   DateTime? _toDate;
   DateTime? _selectedDate;
-  String? _statusFilter = 'approved';
+  String? _statusFilter = null;
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _photographerController = TextEditingController();
 

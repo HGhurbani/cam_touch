@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/services/location_service.dart';
@@ -243,7 +244,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                 ),
               ),
             const Text(
-              'فعالياتي القادمة والحالية (ملخص):',
+              'فعالياتي القادمة والحالية:',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),

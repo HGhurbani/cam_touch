@@ -178,13 +178,17 @@ class AuthService extends ChangeNotifier {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      // Create the associated Firestore documents for the new user.
-      await _createUserIfNeeded(
-        userCredential.user!,
-        fullName,
-        role,
-        phoneNumber: phoneNumber,
-      );
+      // Skip sending email verification to allow immediate account access.
+
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'email': email,
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          'phoneNumber': phoneNumber,
+        'fullName': fullName,
+        'role': role.toString().split('.').last,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -222,23 +226,6 @@ class AuthService extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
-
-    // Ensure a placeholder photographer document exists when the user role
-    // is photographer so admin pages can list the account immediately.
-    if (role == UserRole.photographer) {
-      final photographerDoc =
-          _firestore.collection('photographers_data').doc(user.uid);
-      if (!(await photographerDoc.get()).exists) {
-        await photographerDoc.set({
-          'bio': '',
-          'specialties': <String>[],
-          'rating': 0.0,
-          'totalBookings': 0,
-          'balance': 0.0,
-          'totalDeductions': 0.0,
-        });
-      }
-    }
   }
 
   // تسجيل الخروج
@@ -254,7 +241,6 @@ class AuthService extends ChangeNotifier {
   /// `List<Object>` cast error.
   Future<PigeonUserDetails?> fetchUserDetails(String uid) async {
     final result = await _pigeonChannel.invokeMethod('getUserDetails', uid);
-    return parsePigeonUserDetails(result);
   }
 
   // جلب دور المستخدم الحالي يدوياً بعد تسجيل الدخول

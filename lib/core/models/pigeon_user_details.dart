@@ -1,30 +1,67 @@
 // lib/core/models/pigeon_user_details.dart
-// Simple model to represent user details returned via Pigeon
-// Adjust fields as necessary to match the native implementation.
 
-class PigeonUserDetails {
-  final String id;
-  final String email;
-  final String name;
+import 'package:firebase_auth/firebase_auth.dart'; // استيراد Firebase User
 
-  PigeonUserDetails({required this.id, required this.email, required this.name});
+class PigeonUserDetails { // يمكنك إعادة تسمية هذا الكلاس إلى UserDetails أو AppUser
+  final String? uid;
+  final String? email;
+  final String? displayName;
+  final String? photoURL;
+  final bool? emailVerified;
+  final String? phoneNumber;
+  // أضف أي حقول أخرى تحتاجها من Firebase User
+  // final List<String>? providerIds;
+  // final int? creationTime;
+  // final int? lastSignInTime;
 
-  /// Creates an instance from the List format returned by a Pigeon channel.
-  static PigeonUserDetails decode(List<Object?> data) {
+  PigeonUserDetails({
+    this.uid,
+    this.email,
+    this.displayName,
+    this.photoURL,
+    this.emailVerified,
+    this.phoneNumber,
+    // this.providerIds,
+    // this.creationTime,
+    // this.lastSignInTime,
+  });
+
+  // دالة تحويل (factory constructor) لتحويل كائن Firebase User إلى PigeonUserDetails
+  factory PigeonUserDetails.fromFirebaseUser(User user) {
     return PigeonUserDetails(
-      id: data.isNotEmpty ? data[0] as String? ?? '' : '',
-      email: data.length > 1 ? data[1] as String? ?? '' : '',
-      name: data.length > 2 ? data[2] as String? ?? '' : '',
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      phoneNumber: user.phoneNumber,
+      // providerIds: user.providerData.map((info) => info.providerId).toList(),
+      // creationTime: user.metadata?.creationTime?.millisecondsSinceEpoch,
+      // lastSignInTime: user.metadata?.lastSignInTime?.millisecondsSinceEpoch,
     );
   }
-}
 
-/// Helper to safely convert the dynamic value coming from the platform channel
-/// into a [PigeonUserDetails] object. This avoids `List<Object>` casting errors.
-PigeonUserDetails? parsePigeonUserDetails(Object? result) {
-  if (result is PigeonUserDetails) return result;
-  if (result is List<Object?>) {
-    return PigeonUserDetails.decode(result);
+  // يمكنك إضافة دالة toMap أو toJson هنا إذا كنت بحاجة لتحويل الكائن إلى Map أو JSON
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'email': email,
+      'displayName': displayName,
+      'photoURL': photoURL,
+      'emailVerified': emailVerified,
+      'phoneNumber': phoneNumber,
+    };
   }
-  return null;
+
+// يمكنك إضافة دالة fromMap أو fromJson هنا إذا كنت تقرأ من Firestore مثلاً
+// factory PigeonUserDetails.fromMap(Map<String, dynamic> map) {
+//   return PigeonUserDetails(
+//     uid: map['uid'],
+//     email: map['email'],
+//     displayName: map['displayName'],
+//     photoURL: map['photoURL'],
+//     emailVerified: map['emailVerified'],
+//     phoneNumber: map['phoneNumber'],
+//   );
+// }
 }

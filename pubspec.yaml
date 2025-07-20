@@ -14,7 +14,7 @@ dependencies:
 
   # Firebase Core and Services
   firebase_core: ^2.24.2 # Core Firebase functionalities
-  firebase_auth: ^4.16.0 # User authentication
+  firebase_auth: ^4.17.1 # User authentication
   cloud_firestore: ^4.13.5 # NoSQL database for data storage
   firebase_messaging: ^14.7.10 # Push notifications
   firebase_storage: ^11.5.6 # Storing files like invoices
