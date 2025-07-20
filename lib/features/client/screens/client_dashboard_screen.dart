@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/models/booking_model.dart';
+import '../../../core/models/user_model.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
@@ -133,8 +134,21 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                               Text('التاريخ: ${booking.bookingDate.toLocal().toString().split(' ')[0]}'),
                               Text('الوقت: ${booking.bookingTime}'),
                               Text('الحالة: ${getBookingStatusLabel(booking.status)}'),
-                              if (booking.photographerId != null)
-                                Text('المصور المعين ID: ${booking.photographerId}'),
+                              if (booking.photographerIds != null && booking.photographerIds!.isNotEmpty)
+                                FutureBuilder<List<UserModel?>>(
+                                  future: Future.wait(booking.photographerIds!.map((id) => firestoreService.getUser(id))),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final names = snapshot.data
+                                            ?.whereType<UserModel>()
+                                            .map((u) => u.fullName)
+                                            .join(', ') ??
+                                        booking.photographerIds!.join(', ');
+                                    return Text('المصورون: $names');
+                                  },
+                                ),
                               // يمكنك إضافة زر لعرض تفاصيل الحجز أو الفاتورة هنا
                             ],
                           ),
