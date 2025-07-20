@@ -231,7 +231,8 @@ class FirestoreService {
 
       if (photographerSnap.exists) {
         txn.update(photographerRef, {
-          'balance': FieldValue.increment(amount),
+          // reduce the remaining balance when a payment is made
+          'balance': FieldValue.increment(-amount),
         });
       }
     });
