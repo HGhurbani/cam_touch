@@ -30,11 +30,13 @@ class PhotographerDashboardScreen extends StatefulWidget {
 class _PhotographerDashboardScreenState extends State<PhotographerDashboardScreen> {
   PhotographerModel? _photographerData;
   String? _errorMessage;
+  UserModel? _photographerUser;
 
   @override
   void initState() {
     super.initState();
     _loadPhotographerData();
+    _loadUserData();
   }
 
   Future<void> _loadPhotographerData() async {
@@ -42,7 +44,16 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
     final firestoreService = Provider.of<FirestoreService>(context, listen: false);
     if (authService.currentUser != null) {
       _photographerData = await firestoreService.getPhotographerData(authService.currentUser!.uid);
-      setState(() {});
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    if (authService.currentUser != null) {
+      _photographerUser = await firestoreService.getUser(authService.currentUser!.uid);
+      if (mounted) setState(() {});
     }
   }
 
@@ -169,7 +180,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'مرحبًا بك يا ${authService.currentUser?.email ?? 'مصور'}!',
+              'مرحبًا بك يا ${_photographerUser?.fullName ?? authService.currentUser?.email ?? 'مصور'}!',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

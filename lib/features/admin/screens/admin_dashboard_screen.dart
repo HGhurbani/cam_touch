@@ -12,9 +12,33 @@ import 'admin_photographers_management_screen.dart';
 // لجدولة المواعيد الخاصة بالفعاليات
 import 'admin_events_scheduling_screen.dart';
 import 'admin_reports_screen.dart';
+import '../../../core/services/firestore_service.dart';
+import '../../../core/models/user_model.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  UserModel? _adminUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdminUser();
+  }
+
+  Future<void> _loadAdminUser() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    if (authService.currentUser != null) {
+      _adminUser = await firestoreService.getUser(authService.currentUser!.uid);
+      if (mounted) setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +69,7 @@ class AdminDashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'مرحبًا بك يا ${authService.currentUser?.email ?? 'مدير'}!',
+              'مرحبًا بك يا ${_adminUser?.fullName ?? authService.currentUser?.email ?? 'مدير'}!',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

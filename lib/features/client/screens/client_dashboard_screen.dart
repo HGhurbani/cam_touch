@@ -23,23 +23,23 @@ class ClientDashboardScreen extends StatefulWidget {
 }
 
 class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
-  // يمكننا جلب بيانات العميل هنا إذا أردنا عرض اسمه
-  // UserModel? _clientUser;
+  // متغير لتخزين بيانات العميل لجلب الاسم الكامل
+  UserModel? _clientUser;
 
   @override
   void initState() {
     super.initState();
-    // _loadClientData(); // يمكن تفعيل هذا لاسترداد بيانات العميل
+    _loadClientData(); // جلب بيانات العميل لعرض اسمه
   }
 
-  // Future<void> _loadClientData() async {
-  //   final authService = Provider.of<AuthService>(context, listen: false);
-  //   final firestoreService = Provider.of<FirestoreService>(context, listen: false);
-  //   if (authService.currentUser != null) {
-  //     _clientUser = await firestoreService.getUser(authService.currentUser!.uid);
-  //     setState(() {});
-  //   }
-  // }
+  Future<void> _loadClientData() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    if (authService.currentUser != null) {
+      _clientUser = await firestoreService.getUser(authService.currentUser!.uid);
+      if (mounted) setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'مرحبًا بك يا ${authService.currentUser?.email ?? 'عميل'}!',
+              'مرحبًا بك يا ${_clientUser?.fullName ?? authService.currentUser?.email ?? 'عميل'}!',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
