@@ -27,7 +27,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime? _selectedDate;
   String? _selectedTime;
   String? _selectedServiceType;
-  double _estimatedCost = 0.0; // يمكن حسابها ديناميكيًا لاحقًا
+  double _estimatedCost = 0.0; // يتم تحديد التكلفة لاحقاً بواسطة الإدارة
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -75,29 +75,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  void _calculateEstimatedCost() {
-    // منطق حساب التكلفة التقديرية بناءً على نوع الخدمة، المدة، إلخ.
-    // حالياً، سنضع قيمة عشوائية لأغراض التوضيح
-    if (_selectedServiceType != null) {
-      setState(() {
-        // مثال بسيط
-        switch (_selectedServiceType) {
-          case 'تصوير فعاليات':
-            _estimatedCost = 500.0;
-            break;
-          case 'تصوير منتجات':
-            _estimatedCost = 300.0;
-            break;
-          case 'جلسات شخصية':
-            _estimatedCost = 200.0;
-            break;
-          default:
-            _estimatedCost = 150.0;
-            break;
-        }
-      });
-    }
-  }
+
 
   Future<void> _submitBookingRequest() async {
     if (_formKey.currentState!.validate()) {
@@ -147,6 +125,7 @@ class _BookingScreenState extends State<BookingScreen> {
         location: _locationController.text.trim(),
         serviceType: _selectedServiceType!,
         estimatedCost: _estimatedCost,
+        paidAmount: 0.0,
         status: 'pending_admin_approval', // الحالة الأولية
         createdAt: Timestamp.now(), // Firestore timestamp
       );
@@ -219,7 +198,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 onChanged: (newValue) {
                   setState(() {
                     _selectedServiceType = newValue;
-                    _calculateEstimatedCost(); // إعادة حساب التكلفة
                   });
                 },
                 validator: (value) =>
@@ -240,13 +218,6 @@ class _BookingScreenState extends State<BookingScreen> {
                   }
                   return null;
                 },
-              ),
-              const SizedBox(height: 24),
-              // عرض التكلفة التقديرية
-              Text(
-                'التكلفة التقديرية: \$${_estimatedCost.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               if (_errorMessage != null)

@@ -25,7 +25,7 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
   String? _selectedTime;
   String? _selectedServiceType;
   String? _selectedClientId;
-  double _estimatedCost = 0.0;
+  double _estimatedCost = 0.0; // يتم تحديد التكلفة لاحقاً عند الموافقة على الحجز
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -85,21 +85,7 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
     }
   }
 
-  void _calculateEstimatedCost() {
-    switch (_selectedServiceType) {
-      case 'تصوير فعاليات':
-        _estimatedCost = 500.0;
-        break;
-      case 'تصوير منتجات':
-        _estimatedCost = 300.0;
-        break;
-      case 'جلسات شخصية':
-        _estimatedCost = 200.0;
-        break;
-      default:
-        _estimatedCost = 150.0;
-    }
-  }
+
 
   Future<void> _submitBooking() async {
     if (_formKey.currentState!.validate()) {
@@ -138,6 +124,7 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
         location: _locationController.text,
         serviceType: _selectedServiceType!,
         estimatedCost: _estimatedCost,
+        paidAmount: 0.0,
         status: 'pending_admin_approval',
         depositAmount: null,
         paymentProofUrl: null,
@@ -231,7 +218,6 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
                       onChanged: (val) {
                         setState(() {
                           _selectedServiceType = val;
-                          _calculateEstimatedCost();
                         });
                       },
                       validator: (value) => value == null ? 'الرجاء اختيار نوع الخدمة' : null,
@@ -249,12 +235,6 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
                         }
                         return null;
                       },
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'التكلفة التقديرية: \$${_estimatedCost.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     if (_errorMessage != null)

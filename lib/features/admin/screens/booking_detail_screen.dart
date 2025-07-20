@@ -58,7 +58,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   }
 
   // دالة لتحديث حالة الحجز
-  Future<void> _updateBookingStatus(String newStatus, {String? photographerId}) async {
+  Future<void> _updateBookingStatus(String newStatus,
+      {String? photographerId, Map<String, dynamic>? extraData}) async {
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => ConfirmationDialog(
@@ -81,6 +82,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       Map<String, dynamic> updateData = {'status': newStatus};
       if (photographerId != null) {
         updateData['photographerId'] = photographerId;
+      }
+      if (extraData != null) {
+        updateData.addAll(extraData);
       }
       await firestoreService.updateBooking(widget.bookingId, updateData);
 
@@ -138,18 +142,24 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('التكلفة التقديرية:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('تكلفة الحجز:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text('\$${_booking!.estimatedCost.toStringAsFixed(2)}'),
                   ],
                 ),
-                if (_booking!.depositAmount != null)
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text('العربون المدفوع:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('\$${_booking!.depositAmount!.toStringAsFixed(2)}'),
-                    ],
-                  ),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('المدفوع:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('\$${_booking!.paidAmount.toStringAsFixed(2)}'),
+                  ],
+                ),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('المتبقي:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('\$${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)}'),
+                  ],
+                ),
                 // يمكنك إضافة المزيد من التفاصيل هنا
               ],
             );
@@ -189,6 +199,109 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تعذر فتح الرابط المطلوب.')),
       );
+    }
+  }
+
+  // إدخال التكلفة عند الموافقة
+  Future<void> _approveWithCost() async {
+    final controller = TextEditingController();
+    final cost = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('أدخل تكلفة الحجز'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'التكلفة'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              Navigator.pop(context, value);
+            },
+            child: const Text('موافقة'),
+          ),
+        ],
+      ),
+    );
+
+    if (cost != null) {
+      await _updateBookingStatus('approved', extraData: {'estimatedCost': cost});
+    }
+  }
+
+  // تسجيل العربون
+  Future<void> _recordDeposit() async {
+    final controller = TextEditingController();
+    final deposit = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('مبلغ العربون المدفوع'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'المبلغ'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              Navigator.pop(context, value);
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+
+    if (deposit != null) {
+      await _updateBookingStatus('deposit_paid', extraData: {
+        'depositAmount': deposit,
+        'paidAmount': deposit,
+      });
+    }
+  }
+
+  // تسجيل المبلغ المتبقي
+  Future<void> _recordRemainingPayment() async {
+    final remaining = _booking!.estimatedCost - _booking!.paidAmount;
+    final controller = TextEditingController(text: remaining.toString());
+    final paid = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('دفع المبلغ المتبقي'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'المبلغ'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              Navigator.pop(context, value);
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+
+    if (paid != null) {
+      final total = _booking!.paidAmount + paid;
+      await _updateBookingStatus('completed', extraData: {
+        'paidAmount': total,
+      });
     }
   }
 
@@ -235,7 +348,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             const SizedBox(height: 8),
             Text('الموقع: ${_booking!.location}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
-            Text('التكلفة المقدرة: \$${_booking!.estimatedCost.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
+            if (_booking!.estimatedCost > 0)
+              Text('تكلفة الحجز: \$${_booking!.estimatedCost.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16)),
+            if (_booking!.paidAmount > 0)
+              Text('المدفوع: \$${_booking!.paidAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16)),
+            if (_booking!.estimatedCost > 0)
+              Text('المتبقي: \$${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             Text('الحالة: ${_booking!.status}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -247,7 +368,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             if (_booking!.status == 'pending_admin_approval') ...[
               CustomButton(
                 text: 'الموافقة على الحجز',
-                onPressed: () => _updateBookingStatus('approved'),
+                onPressed: _approveWithCost,
                 color: Colors.green,
               ),
               const SizedBox(height: 16),
@@ -259,19 +380,19 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             ],
             if (_booking!.status == 'approved') ...[
               CustomButton(
-                text: 'تأكيد دفع العربون',
-                onPressed: () => _updateBookingStatus(
-                  'deposit_paid',
-                  // هنا يمكن للمدير إدخال مبلغ العربون يدوياً
-                  // For now, hardcode or prompt for input
-                  // For simplicity, let's assume deposit is 20% of estimated cost
-                  // You might want a dialog here for the admin to input the actual deposit amount.
-                  // This action should also update the depositAmount field in BookingModel.
-                  // Example of updating depositAmount (will require modifying _updateBookingStatus to accept it):
-                  // await firestoreService.updateBooking(widget.bookingId, {'status': 'deposit_paid', 'depositAmount': _booking!.estimatedCost * 0.2});
-                ),
+                text: 'تسجيل دفع العربون',
+                onPressed: _recordDeposit,
                 color: Colors.blue,
               ),
+            ],
+            if (_booking!.status == 'deposit_paid' &&
+                _booking!.paidAmount < _booking!.estimatedCost) ...[
+              CustomButton(
+                text: 'تسديد المتبقي',
+                onPressed: _recordRemainingPayment,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 16),
             ],
             if (_booking!.status == 'deposit_paid' || _booking!.status == 'completed') ...[
               const SizedBox(height: 16),

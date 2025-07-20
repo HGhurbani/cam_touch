@@ -19,6 +19,7 @@ class BookingModel {
   final double? depositAmount; // مبلغ العربون المطلوب
   final String? paymentProofUrl; // رابط صورة إثبات الدفع
   final String? invoiceUrl; // رابط الفاتورة
+  final double paidAmount; // اجمالي المبلغ المدفوع
   final Timestamp createdAt;
   final Timestamp? updatedAt;
 
@@ -34,6 +35,7 @@ class BookingModel {
     required this.serviceType,
     required this.estimatedCost,
     required this.status,
+    this.paidAmount = 0.0,
     this.depositAmount,
     this.paymentProofUrl,
     this.invoiceUrl,
@@ -58,6 +60,7 @@ class BookingModel {
       depositAmount: (data['depositAmount'] as num?)?.toDouble(),
       paymentProofUrl: data['paymentProofUrl'],
       invoiceUrl: data['invoiceUrl'],
+      paidAmount: (data['paidAmount'] as num?)?.toDouble() ?? 0.0,
       createdAt: data['createdAt'] as Timestamp,
       updatedAt: data['updatedAt'] as Timestamp?,
     );
@@ -78,6 +81,7 @@ class BookingModel {
       'depositAmount': depositAmount,
       'paymentProofUrl': paymentProofUrl,
       'invoiceUrl': invoiceUrl,
+      'paidAmount': paidAmount,
       'createdAt': createdAt,
       'updatedAt': FieldValue.serverTimestamp(), // يتم تحديثه عند كل تعديل
     };
@@ -97,6 +101,7 @@ class BookingModel {
     double? depositAmount,
     String? paymentProofUrl,
     String? invoiceUrl,
+    double? paidAmount,
     Timestamp? createdAt,
     Timestamp? updatedAt,
   }) {
@@ -115,6 +120,7 @@ class BookingModel {
       depositAmount: depositAmount ?? this.depositAmount,
       paymentProofUrl: paymentProofUrl ?? this.paymentProofUrl,
       invoiceUrl: invoiceUrl ?? this.invoiceUrl,
+      paidAmount: paidAmount ?? this.paidAmount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
