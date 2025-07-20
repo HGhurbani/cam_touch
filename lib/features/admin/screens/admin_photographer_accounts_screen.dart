@@ -9,6 +9,7 @@ import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import '../../shared/widgets/loading_indicator.dart';
+import '../../../core/utils/status_utils.dart';
 
 class AdminPhotographerAccountsScreen extends StatefulWidget {
   const AdminPhotographerAccountsScreen({super.key});
@@ -61,6 +62,7 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                 }
 
                 final bookings = snapshot.data!
+                    .where((b) => b.status == 'completed')
                     .where((b) => b.photographerIds != null && b.photographerIds!.isNotEmpty)
                     .where((b) {
                       if (_search.isEmpty) return true;
@@ -85,7 +87,7 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'الخدمة: ${booking.serviceType} - ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)}',
+                              'الخدمة: ${booking.serviceType} - ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)} (${getBookingStatusLabel(booking.status)})',
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
