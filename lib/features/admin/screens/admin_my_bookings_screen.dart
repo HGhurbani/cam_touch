@@ -23,6 +23,7 @@ class AdminMyBookingsScreen extends StatefulWidget {
 class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
   DateTime? _fromDate;
   DateTime? _toDate;
+  DateTime? _selectedDate;
   String? _statusFilter = 'approved';
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _photographerController = TextEditingController();
@@ -48,6 +49,18 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
     );
     if (picked != null) {
       setState(() => _toDate = picked);
+    }
+  }
+
+  Future<void> _pickSelectedDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -101,6 +114,14 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                 .where((b) => !b.bookingDate.isAfter(_toDate!))
                 .toList();
           }
+          if (_selectedDate != null) {
+            bookings = bookings
+                .where((b) =>
+                    b.bookingDate.year == _selectedDate!.year &&
+                    b.bookingDate.month == _selectedDate!.month &&
+                    b.bookingDate.day == _selectedDate!.day)
+                .toList();
+          }
           final clientQuery = _clientController.text.trim();
           if (clientQuery.isNotEmpty) {
             bookings = bookings
@@ -139,6 +160,12 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                           ? 'إلى تاريخ'
                           : DateFormat('yyyy-MM-dd').format(_toDate!)),
                     ),
+                    ElevatedButton(
+                      onPressed: _pickSelectedDate,
+                      child: Text(_selectedDate == null
+                          ? 'تاريخ معين'
+                          : DateFormat('yyyy-MM-dd').format(_selectedDate!)),
+                    ),
                     DropdownButton<String?>(
                       value: _statusFilter,
                       hint: const Text('الحالة'),
@@ -176,6 +203,7 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                         setState(() {
                           _fromDate = null;
                           _toDate = null;
+                          _selectedDate = null;
                           _statusFilter = 'approved';
                           _clientController.clear();
                           _photographerController.clear();
