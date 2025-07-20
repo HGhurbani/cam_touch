@@ -65,7 +65,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
-      return 'An unknown error occurred.';
+      return e.toString();
     }
   }
 
@@ -90,7 +90,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
-      return 'An unknown error occurred.';
+      return e.toString();
     }
   }
 
@@ -151,7 +151,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
-      return 'An unknown error occurred.';
+      return e.toString();
     }
   }
 
@@ -181,7 +181,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
-      return 'An unknown error occurred.';
+      return e.toString();
     }
   }
 
@@ -196,7 +196,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       return e.message;
     } catch (e) {
-      return 'An unknown error occurred.';
+      return e.toString();
     }
   }
 
