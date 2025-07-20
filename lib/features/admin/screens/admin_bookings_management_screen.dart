@@ -12,8 +12,15 @@ import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import 'booking_detail_screen.dart'; // سنقوم بإنشاء هذه الشاشة تالياً
 
-class AdminBookingsManagementScreen extends StatelessWidget {
+class AdminBookingsManagementScreen extends StatefulWidget {
   const AdminBookingsManagementScreen({super.key});
+
+  @override
+  State<AdminBookingsManagementScreen> createState() => _AdminBookingsManagementScreenState();
+}
+
+class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementScreen> {
+  String? _statusFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +36,16 @@ class AdminBookingsManagementScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'إدارة الحجوزات'),
+      appBar: CustomAppBar(
+        title: 'إدارة الحجوزات',
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => Navigator.of(context).pushNamed(AppRouter.adminAddBookingRoute),
+            tooltip: 'إضافة حجز',
+          ),
+        ],
+      ),
       body: StreamBuilder<List<BookingModel>>(
         stream: firestoreService.getAllBookings(), // جلب جميع الحجوزات
         builder: (context, snapshot) {
@@ -44,33 +60,76 @@ class AdminBookingsManagementScreen extends StatelessWidget {
           }
 
           final bookings = snapshot.data!;
-          return ListView.builder(
-            itemCount: bookings.length,
-            itemBuilder: (context, index) {
-              final booking = bookings[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: ListTile(
-                  title: Text('${booking.clientName} - ${booking.serviceType}'),
-                  subtitle: Text(
-                    'التاريخ: ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)}\n'
-                        'الحالة: ${booking.status}',
-                  ),
-                  trailing: Icon(
-                    _getBookingStatusIcon(booking.status),
-                    color: _getBookingStatusColor(booking.status),
-                  ),
-                  onTap: () {
-                    // الانتقال إلى شاشة تفاصيل الحجز
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BookingDetailScreen(bookingId: booking.id),
-                      ),
-                    );
+          final filteredBookings = _statusFilter == null
+              ? bookings
+              : bookings.where((b) => b.status == _statusFilter).toList();
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButton<String?>(
+                  value: _statusFilter,
+                  hint: const Text('تصفية الحالة'),
+                  items: const [
+                    DropdownMenuItem(value: null, child: Text('الكل')),
+                    DropdownMenuItem(value: 'pending_admin_approval', child: Text('قيد المراجعة')),
+                    DropdownMenuItem(value: 'approved', child: Text('موافق عليه')),
+                    DropdownMenuItem(value: 'rejected', child: Text('مرفوض')),
+                    DropdownMenuItem(value: 'deposit_paid', child: Text('دفع العربون')),
+                    DropdownMenuItem(value: 'completed', child: Text('مكتمل')),
+                    DropdownMenuItem(value: 'scheduled', child: Text('مجدول')),
+                  ],
+                  onChanged: (val) {
+                    setState(() => _statusFilter = val);
                   },
                 ),
-              );
-            },
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('العميل')),
+                        DataColumn(label: Text('الخدمة')),
+                        DataColumn(label: Text('التاريخ')),
+                        DataColumn(label: Text('الحالة')),
+                      ],
+                      rows: filteredBookings
+                          .map(
+                            (booking) => DataRow(
+                              cells: [
+                                DataCell(Text(booking.clientName)),
+                                DataCell(Text(booking.serviceType)),
+                                DataCell(Text(DateFormat('yyyy-MM-dd').format(booking.bookingDate))),
+                                DataCell(Row(
+                                  children: [
+                                    Icon(
+                                      _getBookingStatusIcon(booking.status),
+                                      color: _getBookingStatusColor(booking.status),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(booking.status),
+                                  ],
+                                )),
+                              ],
+                              onSelectChanged: (_) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => BookingDetailScreen(bookingId: booking.id),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

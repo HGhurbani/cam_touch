@@ -11,6 +11,7 @@ import '../features/admin/screens/admin_dashboard_screen.dart';
 import '../features/client/screens/booking_screen.dart';
 import '../features/admin/screens/admin_bookings_management_screen.dart';
 import '../features/admin/screens/booking_detail_screen.dart';
+import '../features/admin/screens/admin_add_booking_screen.dart';
 import '../features/admin/screens/admin_photographers_management_screen.dart';
 import '../features/admin/screens/admin_clients_management_screen.dart';
 import '../features/admin/screens/admin_events_scheduling_screen.dart';
@@ -30,6 +31,7 @@ class AppRouter {
   static const String photographerDashboardRoute = '/photographer_dashboard';
   static const String adminDashboardRoute = '/admin_dashboard';
   static const String bookingRoute = '/booking';
+  static const String adminAddBookingRoute = '/admin_add_booking';
   static const String adminBookingsManagementRoute = '/admin_bookings_management';
   static const String bookingDetailRoute = '/booking_detail';
   static const String adminPhotographersManagementRoute = '/admin_photographers_management';
@@ -62,6 +64,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
       case bookingRoute:
         return MaterialPageRoute(builder: (_) => const BookingScreen());
+      case adminAddBookingRoute:
+        return MaterialPageRoute(builder: (_) => const AdminAddBookingScreen());
       case adminBookingsManagementRoute:
         return MaterialPageRoute(builder: (_) => const AdminBookingsManagementScreen());
       case bookingDetailRoute:
