@@ -6,6 +6,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_app_bar.dart';
+import '../../shared/dialogs/confirmation_dialog.dart';
 import 'admin_bookings_management_screen.dart';
 // لاستعراض وإدارة بيانات المصورين
 import 'admin_photographers_management_screen.dart';
@@ -57,7 +58,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await authService.signOut();
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => const ConfirmationDialog(
+                  title: 'تأكيد تسجيل الخروج',
+                  content: 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+                ),
+              );
+              if (confirm == true) {
+                await authService.signOut();
+              }
             },
           ),
         ],

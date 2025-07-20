@@ -19,6 +19,7 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import 'photographer_schedule_screen.dart'; // استيراد جديد لشاشة الجدول الزمني
 import '../../../core/utils/status_utils.dart';
+import '../../shared/dialogs/confirmation_dialog.dart';
 
 class PhotographerDashboardScreen extends StatefulWidget {
   const PhotographerDashboardScreen({super.key});
@@ -190,7 +191,16 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await authService.signOut();
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => const ConfirmationDialog(
+                  title: 'تأكيد تسجيل الخروج',
+                  content: 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+                ),
+              );
+              if (confirm == true) {
+                await authService.signOut();
+              }
             },
             tooltip: 'تسجيل الخروج',
           ),
