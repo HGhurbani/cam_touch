@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/models/booking_model.dart';
 import '../../../core/models/event_model.dart';
 import '../../../core/models/attendance_model.dart';
 import '../../../core/models/photographer_model.dart';
@@ -280,6 +281,44 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                               ),
                             ],
                           ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'حجوزاتك والمدفوعات:',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: StreamBuilder<List<BookingModel>>(
+                stream: firestoreService.getPhotographerBookings(authService.currentUser!.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const LoadingIndicator();
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('خطأ: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('لا توجد حجوزات حالياً.'));
+                  }
+
+                  final bookings = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: bookings.length,
+                    itemBuilder: (context, index) {
+                      final booking = bookings[index];
+                      final paid = booking.photographerPayments?[authService.currentUser!.uid] ?? 0.0;
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text('${booking.serviceType} - ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)}'),
+                          subtitle: Text('المدفوع لك: ${paid.toStringAsFixed(2)} ريال يمني'),
                         ),
                       );
                     },

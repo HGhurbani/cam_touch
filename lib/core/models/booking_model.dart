@@ -21,6 +21,7 @@ class BookingModel {
   final String? paymentProofUrl; // رابط صورة إثبات الدفع
   final String? invoiceUrl; // رابط الفاتورة
   final double paidAmount; // اجمالي المبلغ المدفوع
+  final Map<String, double>? photographerPayments; // المبالغ المدفوعة لكل مصور
   final Timestamp createdAt;
   final Timestamp? updatedAt;
 
@@ -43,6 +44,7 @@ class BookingModel {
     this.invoiceUrl,
     required this.createdAt,
     this.updatedAt,
+    this.photographerPayments,
   });
 
   factory BookingModel.fromFirestore(DocumentSnapshot doc) {
@@ -64,6 +66,7 @@ class BookingModel {
       paymentProofUrl: data['paymentProofUrl'],
       invoiceUrl: data['invoiceUrl'],
       paidAmount: (data['paidAmount'] as num?)?.toDouble() ?? 0.0,
+      photographerPayments: (data['photographerPayments'] as Map?)?.map((k, v) => MapEntry(k as String, (v as num).toDouble())),
       createdAt: data['createdAt'] as Timestamp,
       updatedAt: data['updatedAt'] as Timestamp?,
     );
@@ -86,6 +89,7 @@ class BookingModel {
       'paymentProofUrl': paymentProofUrl,
       'invoiceUrl': invoiceUrl,
       'paidAmount': paidAmount,
+      'photographerPayments': photographerPayments,
       'createdAt': createdAt,
       'updatedAt': FieldValue.serverTimestamp(), // يتم تحديثه عند كل تعديل
     };
@@ -107,6 +111,7 @@ class BookingModel {
     String? paymentProofUrl,
     String? invoiceUrl,
     double? paidAmount,
+    Map<String, double>? photographerPayments,
     Timestamp? createdAt,
     Timestamp? updatedAt,
   }) {
@@ -127,6 +132,7 @@ class BookingModel {
       paymentProofUrl: paymentProofUrl ?? this.paymentProofUrl,
       invoiceUrl: invoiceUrl ?? this.invoiceUrl,
       paidAmount: paidAmount ?? this.paidAmount,
+      photographerPayments: photographerPayments ?? this.photographerPayments,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
