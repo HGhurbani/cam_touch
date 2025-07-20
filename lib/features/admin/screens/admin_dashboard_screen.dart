@@ -123,6 +123,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 16),
             CustomButton(
+              text: 'إدارة الحضور والغياب',
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRouter.adminAttendanceManagementRoute);
+              },
+            ),
+            const SizedBox(height: 16),
+            CustomButton(
               text: 'التقارير',
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRouter.adminReportsRoute);
