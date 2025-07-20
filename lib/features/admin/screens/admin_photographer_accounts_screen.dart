@@ -63,7 +63,9 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
 
                 final bookings = snapshot.data!
                     .where((b) => b.status == 'completed')
-                    .where((b) => b.photographerIds != null && b.photographerIds!.isNotEmpty)
+                    .where((b) =>
+                        (b.photographerIds != null && b.photographerIds!.isNotEmpty) ||
+                        b.photographerId != null)
                     .where((b) {
                       if (_search.isEmpty) return true;
                       final q = _search.toLowerCase();
@@ -91,7 +93,11 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            ...booking.photographerIds!.map((pid) {
+                            final ids = booking.photographerIds ??
+                                (booking.photographerId != null
+                                    ? [booking.photographerId!]
+                                    : <String>[]);
+                            ...ids.map((pid) {
                               return FutureBuilder<UserModel?>(
                                 future: firestoreService.getUser(pid),
                                 builder: (context, userSnapshot) {
