@@ -11,6 +11,7 @@ import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
+import '../../../core/utils/status_utils.dart';
 
 class PhotographerScheduleScreen extends StatelessWidget {
   const PhotographerScheduleScreen({super.key});
@@ -66,7 +67,7 @@ class PhotographerScheduleScreen extends StatelessWidget {
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
-                      Text('الحالة: ${event.status}'),
+                      Text('الحالة: ${getEventStatusLabel(event.status)}'),
                       Text('التاريخ والوقت: ${DateFormat('yyyy-MM-dd HH:mm').format(event.eventDateTime.toLocal())}'),
                       Text('الموقع: ${event.location}'),
                       Text('خصم التأخير المحتمل: ${event.lateDeductionAmount.toStringAsFixed(2)} ريال يمني'),

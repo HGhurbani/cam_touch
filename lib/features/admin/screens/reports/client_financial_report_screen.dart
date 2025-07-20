@@ -13,6 +13,7 @@ import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../../routes/app_router.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
+import '../../../../core/utils/status_utils.dart';
 
 class ClientFinancialReportScreen extends StatelessWidget {
   const ClientFinancialReportScreen({super.key});
@@ -78,7 +79,7 @@ class ClientFinancialReportScreen extends StatelessWidget {
                           return Text('العميل ID: ${booking.clientId}');
                         },
                       ),
-                      Text('الحالة: ${booking.status}'),
+                      Text('الحالة: ${getBookingStatusLabel(booking.status)}'),
                       Text('التكلفة المقدرة: ${booking.estimatedCost.toStringAsFixed(2)} ريال يمني'),
                       if (booking.depositAmount != null)
                         Text('العربون المدفوع: ${booking.depositAmount!.toStringAsFixed(2)} ريال يمني'),
