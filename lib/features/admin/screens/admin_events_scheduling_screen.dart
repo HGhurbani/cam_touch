@@ -35,13 +35,74 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
   DateTime? _selectedEventDate;
   TimeOfDay? _selectedEventTime;
   String? _selectedBookingId; // لربط الفعالية بحجز موجود
-  String? _selectedPhotographerId; // لتعيين المصور
+  List<String> _selectedPhotographerIds = []; // لتعيين أكثر من مصور
 
   bool _isLoading = false;
   String? _errorMessage;
 
   List<BookingModel> _availableBookings = []; // الحجوزات المتاحة للربط
   List<PhotographerModel> _allPhotographers = []; // قائمة بجميع المصورين
+
+  Future<void> _selectPhotographers() async {
+    final List<String> tempSelected = List.from(_selectedPhotographerIds);
+    await showDialog<List<String>>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('اختر المصورين'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: StatefulBuilder(
+              builder: (context, setStateDialog) {
+                return ListView(
+                  children: _allPhotographers.map((photographer) {
+                    final isChecked = tempSelected.contains(photographer.uid);
+                    return CheckboxListTile(
+                      value: isChecked,
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          if (val == true) {
+                            tempSelected.add(photographer.uid);
+                          } else {
+                            tempSelected.remove(photographer.uid);
+                          }
+                        });
+                      },
+                      title: FutureBuilder<UserModel?>(
+                        future: Provider.of<FirestoreService>(context, listen: false).getUser(photographer.uid),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return Text(snapshot.data!.fullName);
+                          }
+                          return Text('المصور ID: ${photographer.uid}');
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, tempSelected),
+              child: const Text('موافق'),
+            ),
+          ],
+        );
+      },
+    ).then((value) {
+      if (value != null) {
+        setState(() {
+          _selectedPhotographerIds = List<String>.from(value);
+        });
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -56,7 +117,9 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
       // جلب جميع الحجوزات الموافق عليها والتي لم يتم ربطها بفعالية أو مصور بعد
       // هذا الشرط يمكن أن يكون أكثر تعقيدًا بناءً على متطلبات العمل
       _availableBookings = (await firestoreService.getAllBookings().first)
-          .where((b) => b.status == 'approved' && b.photographerId == null)
+          .where((b) =>
+              b.status == 'approved' &&
+              (b.photographerIds == null || b.photographerIds!.isEmpty))
           .toList();
       _allPhotographers = (await firestoreService.getAllPhotographers().first);
       _lateDeductionAmountController.text = '50.0'; // قيمة افتراضية للخصم
@@ -115,7 +178,7 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
         setState(() => _errorMessage = 'الرجاء ربط الفعالية بحجز موجود.');
         return;
       }
-      if (_selectedPhotographerId == null) {
+      if (_selectedPhotographerIds.isEmpty) {
         setState(() => _errorMessage = 'الرجاء تعيين مصور للفعالية.');
         return;
       }
@@ -139,7 +202,7 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
       final newEvent = EventModel(
         id: firestoreService.randomDocumentId(),
         bookingId: _selectedBookingId!,
-        assignedPhotographerId: _selectedPhotographerId!,
+        assignedPhotographerIds: _selectedPhotographerIds,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         eventDateTime: eventDateTime,
@@ -157,7 +220,8 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
           _selectedBookingId!,
           {
             'status': 'scheduled', // تغيير حالة الحجز إلى "مجدولة"
-            'photographerId': _selectedPhotographerId, // تعيين المصور للحجز
+            'photographerId': _selectedPhotographerIds.isNotEmpty ? _selectedPhotographerIds.first : null,
+            'photographerIds': _selectedPhotographerIds,
           },
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -312,33 +376,30 @@ class _AdminEventsSchedulingScreenState extends State<AdminEventsSchedulingScree
                 },
               ),
               const SizedBox(height: 16),
-              // اختيار المصور لتعيينه للفعالية
-              DropdownButtonFormField<String>(
-                value: _selectedPhotographerId,
-                decoration: const InputDecoration(
-                  labelText: 'تعيين مصور للفعالية',
-                  border: OutlineInputBorder(),
-                ),
-                items: _allPhotographers.map((photographer) {
-                  return DropdownMenuItem(
-                    value: photographer.uid,
-                    child: FutureBuilder<UserModel?>(
-                      future: firestoreService.getUser(photographer.uid),
-                      builder: (context, userSnapshot) {
-                        if (userSnapshot.hasData && userSnapshot.data != null) {
-                          return Text(userSnapshot.data!.fullName);
-                        }
-                        return Text('المصور ID: ${photographer.uid}');
-                      },
-                    ),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedPhotographerId = newValue;
-                  });
-                },
-                validator: (value) => value == null ? 'الرجاء تعيين مصور.' : null,
+              // اختيار المصورين لتعيينهم للفعالية
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('المصورون المعينون'),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8.0,
+                    children: _selectedPhotographerIds.map((id) {
+                      return FutureBuilder<UserModel?>(
+                        future: firestoreService.getUser(id),
+                        builder: (context, snapshot) {
+                          final name = snapshot.data?.fullName ?? id;
+                          return Chip(label: Text(name));
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _selectPhotographers,
+                    child: Text('اختيار المصورين (${_selectedPhotographerIds.length})'),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               if (_errorMessage != null)

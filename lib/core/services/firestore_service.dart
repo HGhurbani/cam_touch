@@ -226,10 +226,11 @@ class FirestoreService {
   Stream<List<EventModel>> getPhotographerEvents(String photographerId) {
     return _db
         .collection('events')
-        .where('assignedPhotographerId', isEqualTo: photographerId)
+        .where('assignedPhotographerIds', arrayContains: photographerId)
         .orderBy('eventDateTime')
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => EventModel.fromFirestore(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => EventModel.fromFirestore(doc)).toList());
   }
 
   // الحصول على جميع الفعاليات (للمدير)

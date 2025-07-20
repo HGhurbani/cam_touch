@@ -6,6 +6,7 @@ class BookingModel {
   final String id; // Booking ID (Firestore Document ID)
   final String clientId;
   final String? photographerId; // قد يكون null في البداية
+  final List<String>? photographerIds; // دعم تعيين أكثر من مصور
   final String clientName;
   final String clientEmail;
   final DateTime bookingDate;
@@ -27,6 +28,7 @@ class BookingModel {
     required this.id,
     required this.clientId,
     this.photographerId,
+    this.photographerIds,
     required this.clientName,
     required this.clientEmail,
     required this.bookingDate,
@@ -49,6 +51,7 @@ class BookingModel {
       id: doc.id,
       clientId: data['clientId'] ?? '',
       photographerId: data['photographerId'],
+      photographerIds: (data['photographerIds'] as List?)?.map((e) => e.toString()).toList(),
       clientName: data['clientName'] ?? '',
       clientEmail: data['clientEmail'] ?? '',
       bookingDate: (data['bookingDate'] as Timestamp).toDate(),
@@ -70,6 +73,7 @@ class BookingModel {
     return {
       'clientId': clientId,
       'photographerId': photographerId,
+      'photographerIds': photographerIds,
       'clientName': clientName,
       'clientEmail': clientEmail,
       'bookingDate': Timestamp.fromDate(bookingDate),
@@ -90,6 +94,7 @@ class BookingModel {
   BookingModel copyWith({
     String? clientId,
     String? photographerId,
+    List<String>? photographerIds,
     String? clientName,
     String? clientEmail,
     DateTime? bookingDate,
@@ -109,6 +114,7 @@ class BookingModel {
       id: id,
       clientId: clientId ?? this.clientId,
       photographerId: photographerId ?? this.photographerId,
+      photographerIds: photographerIds ?? this.photographerIds,
       clientName: clientName ?? this.clientName,
       clientEmail: clientEmail ?? this.clientEmail,
       bookingDate: bookingDate ?? this.bookingDate,

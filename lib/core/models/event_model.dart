@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class EventModel {
   final String id; // Event ID (Firestore Document ID)
   final String bookingId; // ربط بالـ Booking
-  final String assignedPhotographerId;
+  final List<String> assignedPhotographerIds; // يمكن إسناد أكثر من مصور
   final String title; // مثلاً "تصوير حفل زفاف - [اسم العميل]"
   final String description;
   final DateTime eventDateTime; // وقت وتاريخ الفعالية
@@ -20,7 +20,7 @@ class EventModel {
   EventModel({
     required this.id,
     required this.bookingId,
-    required this.assignedPhotographerId,
+    required this.assignedPhotographerIds,
     required this.title,
     this.description = '',
     required this.eventDateTime,
@@ -38,7 +38,7 @@ class EventModel {
     return EventModel(
       id: doc.id,
       bookingId: data['bookingId'] ?? '',
-      assignedPhotographerId: data['assignedPhotographerId'] ?? '',
+      assignedPhotographerIds: List<String>.from(data['assignedPhotographerIds'] ?? []),
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       eventDateTime: (data['eventDateTime'] as Timestamp).toDate(),
@@ -55,7 +55,7 @@ class EventModel {
   Map<String, dynamic> toFirestore() {
     return {
       'bookingId': bookingId,
-      'assignedPhotographerId': assignedPhotographerId,
+      'assignedPhotographerIds': assignedPhotographerIds,
       'title': title,
       'description': description,
       'eventDateTime': Timestamp.fromDate(eventDateTime),
