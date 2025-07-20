@@ -27,14 +27,17 @@ class PhotographerDashboardScreen extends StatefulWidget {
   State<PhotographerDashboardScreen> createState() => _PhotographerDashboardScreenState();
 }
 
-class _PhotographerDashboardScreenState extends State<PhotographerDashboardScreen> {
+class _PhotographerDashboardScreenState extends State<PhotographerDashboardScreen>
+    with SingleTickerProviderStateMixin {
   PhotographerModel? _photographerData;
   String? _errorMessage;
   UserModel? _photographerUser;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
     _loadPhotographerData();
     _loadUserData();
   }
@@ -132,6 +135,41 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
     return records.any((record) => record.type == 'check_out');
   }
 
+  List<EventModel> _filterEvents(List<EventModel> events) {
+    DateTime start;
+    DateTime end;
+    final now = DateTime.now();
+    if (_tabController.index == 0) {
+      // Today's events
+      start = DateTime(now.year, now.month, now.day);
+      end = start.add(const Duration(days: 1));
+    } else if (_tabController.index == 1) {
+      // This week's events
+      start = now.subtract(Duration(days: now.weekday - 1));
+      end = start.add(const Duration(days: 7));
+    } else {
+      // This month's events
+      start = DateTime(now.year, now.month);
+      end = DateTime(now.year, now.month + 1);
+    }
+
+    return events.where((event) {
+      final eventDate = event.eventDateTime;
+      final eventEndApprox = eventDate.add(const Duration(hours: 4));
+      if (eventEndApprox.isBefore(DateTime.now().subtract(const Duration(hours: 48)))) {
+        return false;
+      }
+      return eventDate.isAfter(start.subtract(const Duration(seconds: 1))) &&
+          eventDate.isBefore(end);
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +247,14 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'اليوم'),
+                Tab(text: 'الأسبوع'),
+                Tab(text: 'الشهر'),
+              ],
+            ),
             Expanded(
               child: StreamBuilder<List<EventModel>>(
                 stream: firestoreService.getPhotographerEvents(authService.currentUser!.uid),
@@ -223,15 +269,14 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                     return const Center(child: Text('لا توجد فعاليات مجدولة لك حالياً.'));
                   }
 
-                  final events = snapshot.data!;
+                  final events = _filterEvents(snapshot.data!);
+                  if (events.isEmpty) {
+                    return const Center(child: Text('لا توجد فعاليات مجدولة لك حالياً.'));
+                  }
                   return ListView.builder(
                     itemCount: events.length,
                     itemBuilder: (context, index) {
                       final event = events[index];
-                      final eventEndApprox = event.eventDateTime.add(const Duration(hours: 4));
-                      if (eventEndApprox.isBefore(DateTime.now().subtract(const Duration(hours: 48)))) {
-                        return const SizedBox.shrink();
-                      }
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -329,7 +374,13 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                         margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                         child: ListTile(
                           title: Text('${booking.serviceType} - ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)}'),
-                          subtitle: Text('المدفوع لك: ${paid.toStringAsFixed(2)} ريال يمني'),
+                          subtitle: Text(
+                            'المدفوع لك: ${paid.toStringAsFixed(2)} ريال يمني',
+                            style: TextStyle(
+                              color: paid > 0 ? Colors.green : null,
+                              fontWeight: paid > 0 ? FontWeight.bold : null,
+                            ),
+                          ),
                         ),
                       );
                     },
