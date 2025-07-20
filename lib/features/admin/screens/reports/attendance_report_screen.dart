@@ -90,7 +90,7 @@ class AttendanceReportScreen extends StatelessWidget {
                       Text('الإحداثيات: ${record.latitude.toStringAsFixed(4)}, ${record.longitude.toStringAsFixed(4)}'),
                       if (record.isLate)
                         Text(
-                          'متأخر: نعم (خصم: \$${record.lateDeductionApplied?.toStringAsFixed(2) ?? '0.00'})',
+                          'متأخر: نعم (خصم: ${record.lateDeductionApplied?.toStringAsFixed(2) ?? '0.00'} ريال يمني)',
                           style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                         ),
                       const SizedBox(height: 8),

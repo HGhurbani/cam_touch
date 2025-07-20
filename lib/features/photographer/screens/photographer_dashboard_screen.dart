@@ -173,11 +173,11 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
             const SizedBox(height: 20),
               if (_photographerData != null) ...[
                 Text(
-                  'رصيدك الحالي: \$${_photographerData!.balance.toStringAsFixed(2)}',
+                  'رصيدك الحالي: ${_photographerData!.balance.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'إجمالي الخصومات: \$${_photographerData!.totalDeductions.toStringAsFixed(2)}',
+                  'إجمالي الخصومات: ${_photographerData!.totalDeductions.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
@@ -235,7 +235,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                               Text('التاريخ والوقت: ${DateFormat('yyyy-MM-dd HH:mm').format(event.eventDateTime.toLocal())}'),
                               Text('الموقع: ${event.location}'),
                               Text('الحالة: ${event.status}'),
-                              Text('خصم التأخير: \$${event.lateDeductionAmount.toStringAsFixed(2)}'),
+                              Text('خصم التأخير: ${event.lateDeductionAmount.toStringAsFixed(2)} ريال يمني'),
                               Text('مدة السماح: ${event.gracePeriodMinutes} دقيقة'),
                               const SizedBox(height: 10),
                               FutureBuilder<bool>(

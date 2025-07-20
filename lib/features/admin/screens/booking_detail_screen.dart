@@ -143,21 +143,21 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text('تكلفة الحجز:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('\$${_booking!.estimatedCost.toStringAsFixed(2)}'),
+                    pw.Text('${_booking!.estimatedCost.toStringAsFixed(2)} ريال يمني'),
                   ],
                 ),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text('المدفوع:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('\$${_booking!.paidAmount.toStringAsFixed(2)}'),
+                    pw.Text('${_booking!.paidAmount.toStringAsFixed(2)} ريال يمني'),
                   ],
                 ),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text('المتبقي:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('\$${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)}'),
+                    pw.Text('${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)} ريال يمني'),
                   ],
                 ),
                 // يمكنك إضافة المزيد من التفاصيل هنا
@@ -349,19 +349,19 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             Text('الموقع: ${_booking!.location}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             if (_booking!.estimatedCost > 0)
-              Text('تكلفة الحجز: \$${_booking!.estimatedCost.toStringAsFixed(2)}',
+              Text('تكلفة الحجز: ${_booking!.estimatedCost.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
             if (_booking!.paidAmount > 0)
-              Text('المدفوع: \$${_booking!.paidAmount.toStringAsFixed(2)}',
+              Text('المدفوع: ${_booking!.paidAmount.toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
             if (_booking!.estimatedCost > 0)
-              Text('المتبقي: \$${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)}',
+              Text('المتبقي: ${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             Text('الحالة: ${_booking!.status}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             if (_booking!.depositAmount != null)
-              Text('مبلغ العربون: \$${_booking!.depositAmount!.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
+              Text('مبلغ العربون: ${_booking!.depositAmount!.toStringAsFixed(2)} ريال يمني', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
 
             // الأزرار بناءً على حالة الحجز
