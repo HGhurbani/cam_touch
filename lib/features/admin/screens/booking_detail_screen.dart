@@ -89,6 +89,16 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       }
       await firestoreService.updateBooking(widget.bookingId, updateData);
 
+      if (newStatus == 'completed') {
+        final ids = _booking!.photographerIds ??
+            (_booking!.photographerId != null
+                ? [_booking!.photographerId!]
+                : <String>[]);
+        for (final pid in ids) {
+          await firestoreService.incrementPhotographerTotalBookings(pid);
+        }
+      }
+
       // إرسال إشعار للعميل (تنفيذ مبدئي باستخدام NotificationService)
       await notificationService.sendNotificationToUser(
         _booking!.clientId,
