@@ -20,6 +20,19 @@ class AdminPhotographerAccountsScreen extends StatefulWidget {
 
 class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccountsScreen> {
   String _search = '';
+  DateTime? _selectedDate;
+
+  Future<void> _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,17 +52,44 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'بحث',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (val) => setState(() => _search = val),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'بحث',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (val) => setState(() => _search = val),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: Text(
+                          _selectedDate == null
+                              ? 'اختر التاريخ'
+                              : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                        ),
+                        leading: const Icon(Icons.calendar_today),
+                        onTap: _pickDate,
+                      ),
+                    ),
+                    if (_selectedDate != null)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => setState(() => _selectedDate = null),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
           Expanded(
             child: StreamBuilder<List<BookingModel>>(
-              stream: firestoreService.getAllBookings(),
+              stream: _selectedDate == null
+                  ? firestoreService.getAllBookings()
+                  : firestoreService.getBookingsByDate(_selectedDate!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const LoadingIndicator();
@@ -92,6 +132,12 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                               'الخدمة: ${booking.serviceType} - ${DateFormat('yyyy-MM-dd').format(booking.bookingDate)} (${getBookingStatusLabel(booking.status)})',
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
+                            const SizedBox(height: 4),
+                            Text('العميل: ${booking.clientName} (${booking.clientEmail})'),
+                            Text('الموقع: ${booking.location}'),
+                            Text('الوقت: ${booking.bookingTime}'),
+                            Text('التكلفة: ${booking.estimatedCost.toStringAsFixed(2)} ريال يمني'),
+                            Text('المدفوع: ${booking.paidAmount.toStringAsFixed(2)} ريال يمني'),
                             const SizedBox(height: 8),
                             for (final pid in booking.photographerIds ??
                                 (booking.photographerId != null

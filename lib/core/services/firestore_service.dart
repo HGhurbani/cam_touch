@@ -141,6 +141,20 @@ class FirestoreService {
         .map((snapshot) => snapshot.docs.map((doc) => BookingModel.fromFirestore(doc)).toList());
   }
 
+  /// Retrieves all bookings that occur on the given [date].
+  Stream<List<BookingModel>> getBookingsByDate(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    return _db
+        .collection('bookings')
+        .where('bookingDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('bookingDate', isLessThan: Timestamp.fromDate(end))
+        .orderBy('bookingDate')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => BookingModel.fromFirestore(doc)).toList());
+  }
+
   // ------------------------------------
   // Photographer Management (Collection: 'photographers_data')
   // ------------------------------------
