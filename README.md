@@ -28,3 +28,13 @@ firebase deploy --only functions
 You can verify that `processPhotographerCheckIn` runs by checking the
 Firebase Console logs after creating an `attendance_records` document.
 
+
+## Firestore Security Rules
+
+The `firestore.rules` file contains development rules that allow any authenticated user to read and write all documents. Deploy these rules with:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+These permissive rules are intended for local testing. Review and tighten them before releasing the app.
