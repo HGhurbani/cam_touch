@@ -63,6 +63,16 @@ class FirestoreService {
             snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
+  /// Returns a stream of all users with the "photographer" role.
+  Stream<List<UserModel>> getAllPhotographerUsers() {
+    return _db
+        .collection('users')
+        .where('role', isEqualTo: 'photographer')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
+  }
+
   // ------------------------------------
   // Booking Management (Collection: 'bookings')
   // ------------------------------------

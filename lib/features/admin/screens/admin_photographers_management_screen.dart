@@ -44,8 +44,8 @@ class _AdminPhotographersManagementScreenState extends State<AdminPhotographersM
           ),
         ],
       ),
-      body: StreamBuilder<List<PhotographerModel>>(
-        stream: firestoreService.getAllPhotographers(), // جلب جميع المصورين
+      body: StreamBuilder<List<UserModel>>( 
+        stream: firestoreService.getAllPhotographerUsers(), // جلب جميع المستخدمين بدور مصور
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const LoadingIndicator();
@@ -57,26 +57,15 @@ class _AdminPhotographersManagementScreenState extends State<AdminPhotographersM
             return const Center(child: Text('لا يوجد مصورون لعرضهم حالياً.'));
           }
 
-          final photographers = snapshot.data!;
+          final photographerUsers = snapshot.data!;
           return ListView.builder(
-            itemCount: photographers.length,
+            itemCount: photographerUsers.length,
             itemBuilder: (context, index) {
-              final photographer = photographers[index];
-              return FutureBuilder<UserModel?>( // جلب بيانات المستخدم الأساسية للمصور
-                future: firestoreService.getUser(photographer.uid),
-                builder: (context, userSnapshot) {
-                  if (userSnapshot.connectionState == ConnectionState.waiting) {
-                    return const ListTile(
-                      title: Text('تحميل المصور...'),
-                    );
-                  }
-                  if (userSnapshot.hasError || !userSnapshot.hasData || userSnapshot.data == null) {
-                    return ListTile(
-                      title: Text('خطأ في جلب بيانات المصور ${photographer.uid}'),
-                    );
-                  }
-
-                  final user = userSnapshot.data!;
+              final user = photographerUsers[index];
+              return FutureBuilder<PhotographerModel?>( // جلب بيانات المصور التفصيلية إن وجدت
+                future: firestoreService.getPhotographerData(user.uid),
+                builder: (context, photoSnapshot) {
+                  final photographer = photoSnapshot.data;
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                     child: ListTile(
@@ -85,18 +74,19 @@ class _AdminPhotographersManagementScreenState extends State<AdminPhotographersM
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('رقم الهاتف: ${user.phoneNumber}'),
-                          Text('المتخصصات: ${photographer.specialties.join(', ')}'),
-                          Text('التقييم: ${photographer.rating.toStringAsFixed(1)}'),
-                          Text('الرصيد: ${photographer.balance.toStringAsFixed(2)} ريال يمني'),
-                          Text('إجمالي الخصومات: ${photographer.totalDeductions.toStringAsFixed(2)} ريال يمني'),
+                          Text('رقم الهاتف: ${user.phoneNumber ?? '-'}'),
+                          if (photographer != null) ...[
+                            Text('المتخصصات: ${photographer.specialties.join(', ')}'),
+                            Text('التقييم: ${photographer.rating.toStringAsFixed(1)}'),
+                            Text('الرصيد: ${photographer.balance.toStringAsFixed(2)} ريال يمني'),
+                            Text('إجمالي الخصومات: ${photographer.totalDeductions.toStringAsFixed(2)} ريال يمني'),
+                          ]
                         ],
                       ),
                       onTap: () {
-                        // الانتقال لشاشة تفاصيل المصور وتعديل بياناته/رصيده
-                        // Navigator.of(context).push(MaterialPageRoute(builder: (_) => PhotographerDetailScreen(photographerId: photographer.uid)));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('سيتم الانتقال إلى تفاصيل المصور قريباً!')),
+                        Navigator.of(context).pushNamed(
+                          AppRouter.photographerDetailRoute,
+                          arguments: user.uid,
                         );
                       },
                     ),
