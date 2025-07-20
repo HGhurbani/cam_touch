@@ -19,8 +19,8 @@ class AdminPhotographerAccountsScreen extends StatefulWidget {
 }
 
 class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccountsScreen> {
-  String _search = '';
   DateTime? _selectedDate;
+  String? _selectedPhotographerId;
 
   Future<void> _pickDate() async {
     DateTime? picked = await showDatePicker(
@@ -48,40 +48,61 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'إدارة حسابات المصورين'),
-      body: Column(
-        children: [
+      body: StreamBuilder<List<UserModel>>( 
+        stream: firestoreService.getAllPhotographerUsers(),
+        builder: (context, photographersSnapshot) {
+          if (photographersSnapshot.connectionState == ConnectionState.waiting) {
+            return const LoadingIndicator();
+          }
+          if (photographersSnapshot.hasError) {
+            return Center(child: Text('خطأ: ${photographersSnapshot.error}'));
+          }
+
+          final photographers = photographersSnapshot.data ?? [];
+
+          return Column(
+            children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
+            child: Row(
               children: [
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'بحث',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  onChanged: (val) => setState(() => _search = val),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: Text(
-                          _selectedDate == null
-                              ? 'اختر التاريخ'
-                              : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                Expanded(
+                  child: DropdownButton<String?>(
+                    isExpanded: true,
+                    value: _selectedPhotographerId,
+                    hint: const Text('المصور'),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('الكل')),
+                      ...photographers.map(
+                        (p) => DropdownMenuItem(
+                          value: p.uid,
+                          child: Text(p.fullName),
                         ),
-                        leading: const Icon(Icons.calendar_today),
-                        onTap: _pickDate,
                       ),
-                    ),
-                    if (_selectedDate != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => setState(() => _selectedDate = null),
-                      ),
-                  ],
+                    ],
+                    onChanged: (val) => setState(() => _selectedPhotographerId = val),
+                  ),
                 ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ListTile(
+                    title: Text(
+                      _selectedDate == null
+                          ? 'اختر التاريخ'
+                          : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                    ),
+                    leading: const Icon(Icons.calendar_today),
+                    onTap: _pickDate,
+                  ),
+                ),
+                if (_selectedDate != null || _selectedPhotographerId != null)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() {
+                      _selectedDate = null;
+                      _selectedPhotographerId = null;
+                    }),
+                  ),
               ],
             ),
           ),
@@ -107,10 +128,10 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                         (b.photographerIds != null && b.photographerIds!.isNotEmpty) ||
                         b.photographerId != null)
                     .where((b) {
-                      if (_search.isEmpty) return true;
-                      final q = _search.toLowerCase();
-                      return b.clientName.toLowerCase().contains(q) ||
-                          b.serviceType.toLowerCase().contains(q);
+                      if (_selectedPhotographerId == null) return true;
+                      final ids = b.photographerIds ??
+                          (b.photographerId != null ? [b.photographerId!] : <String>[]);
+                      return ids.contains(_selectedPhotographerId);
                     }).toList();
 
                 if (bookings.isEmpty) {
@@ -151,7 +172,15 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                                   return ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     title: Text('المصور: $name'),
-                                    subtitle: Text('المدفوع: ${paid.toStringAsFixed(2)} ريال يمني'),
+                                    subtitle: Text(
+                                      'المدفوع: ${paid.toStringAsFixed(2)} ريال يمني',
+                                      style: paid > 0
+                                          ? const TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.bold,
+                                            )
+                                          : null,
+                                    ),
                                     trailing: TextButton(
                                       onPressed: () async {
                                         final controller = TextEditingController();
@@ -203,7 +232,9 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }
