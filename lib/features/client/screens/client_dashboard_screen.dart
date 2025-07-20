@@ -11,6 +11,7 @@ import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
+import '../../shared/dialogs/confirmation_dialog.dart';
 import 'booking_screen.dart'; // تأكد من هذا الاستيراد
 import 'client_rewards_screen.dart'; // استيراد جديد
 import '../../../core/utils/status_utils.dart';
@@ -62,7 +63,16 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await authService.signOut();
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => const ConfirmationDialog(
+                  title: 'تأكيد تسجيل الخروج',
+                  content: 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+                ),
+              );
+              if (confirm == true) {
+                await authService.signOut();
+              }
             },
           ),
         ],
