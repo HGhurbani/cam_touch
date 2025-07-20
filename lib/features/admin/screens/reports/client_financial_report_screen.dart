@@ -79,9 +79,9 @@ class ClientFinancialReportScreen extends StatelessWidget {
                         },
                       ),
                       Text('الحالة: ${booking.status}'),
-                      Text('التكلفة المقدرة: \$${booking.estimatedCost.toStringAsFixed(2)}'),
+                      Text('التكلفة المقدرة: ${booking.estimatedCost.toStringAsFixed(2)} ريال يمني'),
                       if (booking.depositAmount != null)
-                        Text('العربون المدفوع: \$${booking.depositAmount!.toStringAsFixed(2)}'),
+                        Text('العربون المدفوع: ${booking.depositAmount!.toStringAsFixed(2)} ريال يمني'),
                       if (booking.invoiceUrl != null)
                         Align(
                           alignment: Alignment.centerRight,

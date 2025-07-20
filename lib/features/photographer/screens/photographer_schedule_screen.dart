@@ -69,7 +69,7 @@ class PhotographerScheduleScreen extends StatelessWidget {
                       Text('الحالة: ${event.status}'),
                       Text('التاريخ والوقت: ${DateFormat('yyyy-MM-dd HH:mm').format(event.eventDateTime.toLocal())}'),
                       Text('الموقع: ${event.location}'),
-                      Text('خصم التأخير المحتمل: \$${event.lateDeductionAmount.toStringAsFixed(2)}'),
+                      Text('خصم التأخير المحتمل: ${event.lateDeductionAmount.toStringAsFixed(2)} ريال يمني'),
                       Text('مدة السماح بالتأخير: ${event.gracePeriodMinutes} دقيقة'),
                       // يمكن إضافة المزيد من التفاصيل هنا أو زر "عرض تفاصيل الحجز"
                     ],

@@ -97,7 +97,7 @@ class PhotographerDeductionsScreen extends StatelessWidget {
                         },
                       ),
                       Text(
-                        'مبلغ الخصم: \$${record.lateDeductionApplied!.toStringAsFixed(2)}',
+                        'مبلغ الخصم: ${record.lateDeductionApplied!.toStringAsFixed(2)} ريال يمني',
                         style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text('موقع التسجيل: ${record.latitude.toStringAsFixed(4)}, ${record.longitude.toStringAsFixed(4)}'),

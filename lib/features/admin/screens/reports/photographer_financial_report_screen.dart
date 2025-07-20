@@ -64,8 +64,8 @@ class PhotographerFinancialReportScreen extends StatelessWidget {
                             ),
                             Text('رقم الهاتف: ${user.phoneNumber}'),
                             const SizedBox(height: 10),
-                            Text('الرصيد الحالي: \$${photographer.balance.toStringAsFixed(2)}', style: TextStyle(color: photographer.balance >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                            Text('إجمالي الخصومات: \$${photographer.totalDeductions.toStringAsFixed(2)}'),
+                            Text('الرصيد الحالي: ${photographer.balance.toStringAsFixed(2)} ريال يمني', style: TextStyle(color: photographer.balance >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+                            Text('إجمالي الخصومات: ${photographer.totalDeductions.toStringAsFixed(2)} ريال يمني'),
                             Text('عدد الحجوزات المكتملة: ${photographer.totalBookings}'),
                             // يمكن إضافة زر لعرض تفاصيل الخصومات لكل مصور
                           ],
