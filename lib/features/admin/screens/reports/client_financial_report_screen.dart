@@ -73,7 +73,7 @@ class ClientFinancialReportScreen extends StatelessWidget {
                         future: firestoreService.getUser(booking.clientId),
                         builder: (context, userSnapshot) {
                           if (userSnapshot.hasData && userSnapshot.data != null) {
-                            return Text('العميل: ${userSnapshot.data!.fullName} (${userSnapshot.data!.email})');
+                            return Text('العميل: ${userSnapshot.data!.fullName} (${userSnapshot.data!.phoneNumber})');
                           }
                           return Text('العميل ID: ${booking.clientId}');
                         },

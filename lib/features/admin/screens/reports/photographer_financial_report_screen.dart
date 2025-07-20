@@ -62,7 +62,7 @@ class PhotographerFinancialReportScreen extends StatelessWidget {
                               'المصور: ${user.fullName}',
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                            Text('البريد الإلكتروني: ${user.email}'),
+                            Text('رقم الهاتف: ${user.phoneNumber}'),
                             const SizedBox(height: 10),
                             Text('الرصيد الحالي: \$${photographer.balance.toStringAsFixed(2)}', style: TextStyle(color: photographer.balance >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
                             Text('إجمالي الخصومات: \$${photographer.totalDeductions.toStringAsFixed(2)}'),
