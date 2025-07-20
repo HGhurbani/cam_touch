@@ -11,7 +11,6 @@ import 'admin_bookings_management_screen.dart';
 import 'admin_photographers_management_screen.dart';
 // لجدولة المواعيد الخاصة بالفعاليات
 import 'admin_events_scheduling_screen.dart';
-import 'admin_reports_screen.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/models/user_model.dart';
 
@@ -130,11 +129,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 16),
             CustomButton(
-              text: 'التقارير',
+              text: 'الإعدادات',
               onPressed: () {
-                Navigator.of(context).pushNamed(AppRouter.adminReportsRoute);
+                Navigator.of(context).pushNamed(AppRouter.adminSettingsRoute);
               },
-              color: Colors.teal, // لون مميز لزر التقارير
+              color: Colors.teal,
             ),
           ],
         ),

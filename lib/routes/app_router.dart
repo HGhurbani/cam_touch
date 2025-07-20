@@ -15,13 +15,10 @@ import '../features/admin/screens/admin_add_booking_screen.dart';
 import '../features/admin/screens/admin_photographers_management_screen.dart';
 import '../features/admin/screens/admin_clients_management_screen.dart';
 import '../features/admin/screens/admin_events_scheduling_screen.dart';
-import '../features/admin/screens/admin_reports_screen.dart';
 import '../features/admin/screens/admin_photographer_accounts_screen.dart';
 import '../features/admin/screens/admin_my_bookings_screen.dart';
 import '../features/admin/screens/admin_attendance_management_screen.dart';
-import '../features/admin/screens/reports/attendance_report_screen.dart';
-import '../features/admin/screens/reports/photographer_financial_report_screen.dart';
-import '../features/admin/screens/reports/client_financial_report_screen.dart';
+import '../features/admin/screens/admin_settings_screen.dart';
 import '../features/client/screens/client_rewards_screen.dart';
 import '../features/photographer/screens/photographer_deductions_screen.dart';
 import '../features/photographer/screens/photographer_schedule_screen.dart'; // استيراد جديد
@@ -41,15 +38,10 @@ class AppRouter {
   static const String adminPhotographersManagementRoute = '/admin_photographers_management';
   static const String adminClientsManagementRoute = '/admin_clients_management';
   static const String adminEventsSchedulingRoute = '/admin_events_scheduling';
-  static const String adminReportsRoute = '/admin_reports';
+  static const String adminSettingsRoute = '/admin_settings';
   static const String adminPhotographerAccountsRoute = '/admin_photographer_accounts';
   static const String adminMyBookingsRoute = '/admin_my_bookings';
   static const String adminAttendanceManagementRoute = '/admin_attendance_management';
-  static const String attendanceReportRoute = '/admin_reports/attendance';
-  static const String photographerFinancialReportRoute =
-      '/admin_reports/photographers_financial';
-  static const String clientFinancialReportRoute =
-      '/admin_reports/clients_financial';
   static const String clientRewardsRoute = '/client_rewards';
   static const String photographerDeductionsRoute = '/photographer_deductions';
   static const String photographerScheduleRoute = '/photographer_schedule'; // مسار جديد
@@ -85,21 +77,14 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminClientsManagementScreen());
       case adminEventsSchedulingRoute:
         return MaterialPageRoute(builder: (_) => const AdminEventsSchedulingScreen());
-      case adminReportsRoute:
-        return MaterialPageRoute(builder: (_) => const AdminReportsScreen());
+      case adminSettingsRoute:
+        return MaterialPageRoute(builder: (_) => const AdminSettingsScreen());
       case adminPhotographerAccountsRoute:
         return MaterialPageRoute(builder: (_) => const AdminPhotographerAccountsScreen());
       case adminMyBookingsRoute:
         return MaterialPageRoute(builder: (_) => const AdminMyBookingsScreen());
       case adminAttendanceManagementRoute:
         return MaterialPageRoute(builder: (_) => const AdminAttendanceManagementScreen());
-      case attendanceReportRoute:
-        return MaterialPageRoute(builder: (_) => const AttendanceReportScreen());
-      case photographerFinancialReportRoute:
-        return MaterialPageRoute(builder: (_) =>
-            const PhotographerFinancialReportScreen());
-      case clientFinancialReportRoute:
-        return MaterialPageRoute(builder: (_) => const ClientFinancialReportScreen());
       case clientRewardsRoute:
         return MaterialPageRoute(builder: (_) => const ClientRewardsScreen());
       case photographerDeductionsRoute:
