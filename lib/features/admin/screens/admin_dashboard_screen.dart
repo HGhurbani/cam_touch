@@ -69,6 +69,14 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             CustomButton(
+              text: 'إدارة حسابات المصورين',
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRouter.adminPhotographerAccountsRoute);
+              },
+              color: Colors.deepPurple,
+            ),
+            const SizedBox(height: 16),
+            CustomButton(
               text: 'إدارة العملاء',
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRouter.adminClientsManagementRoute);

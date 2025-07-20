@@ -16,6 +16,7 @@ import '../features/admin/screens/admin_photographers_management_screen.dart';
 import '../features/admin/screens/admin_clients_management_screen.dart';
 import '../features/admin/screens/admin_events_scheduling_screen.dart';
 import '../features/admin/screens/admin_reports_screen.dart';
+import '../features/admin/screens/admin_photographer_accounts_screen.dart';
 import '../features/admin/screens/reports/attendance_report_screen.dart';
 import '../features/admin/screens/reports/photographer_financial_report_screen.dart';
 import '../features/admin/screens/reports/client_financial_report_screen.dart';
@@ -38,6 +39,7 @@ class AppRouter {
   static const String adminClientsManagementRoute = '/admin_clients_management';
   static const String adminEventsSchedulingRoute = '/admin_events_scheduling';
   static const String adminReportsRoute = '/admin_reports';
+  static const String adminPhotographerAccountsRoute = '/admin_photographer_accounts';
   static const String attendanceReportRoute = '/admin_reports/attendance';
   static const String photographerFinancialReportRoute =
       '/admin_reports/photographers_financial';
@@ -79,6 +81,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminEventsSchedulingScreen());
       case adminReportsRoute:
         return MaterialPageRoute(builder: (_) => const AdminReportsScreen());
+      case adminPhotographerAccountsRoute:
+        return MaterialPageRoute(builder: (_) => const AdminPhotographerAccountsScreen());
       case attendanceReportRoute:
         return MaterialPageRoute(builder: (_) => const AttendanceReportScreen());
       case photographerFinancialReportRoute:

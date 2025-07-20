@@ -122,6 +122,16 @@ class FirestoreService {
         .map((snapshot) => snapshot.docs.map((doc) => BookingModel.fromFirestore(doc)).toList());
   }
 
+  // الحصول على جميع حجوزات مصور معين
+  Stream<List<BookingModel>> getPhotographerBookings(String photographerId) {
+    return _db
+        .collection('bookings')
+        .where('photographerIds', arrayContains: photographerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => BookingModel.fromFirestore(doc)).toList());
+  }
+
   // الحصول على جميع الحجوزات للمدير (مع إمكانية التصفية لاحقًا)
   Stream<List<BookingModel>> getAllBookings() {
     return _db
@@ -180,6 +190,34 @@ class FirestoreService {
           return PhotographerModel(uid: userDoc.id);
         }
       }).toList());
+    });
+  }
+
+  /// تسجيل دفعة لمصور لحجز معين وتحديث رصيده
+  Future<void> recordPhotographerPayment(
+      String bookingId, String photographerId, double amount) async {
+    final bookingRef = _db.collection('bookings').doc(bookingId);
+    final photographerRef =
+        _db.collection('photographers_data').doc(photographerId);
+    await _db.runTransaction((txn) async {
+      final bookingSnap = await txn.get(bookingRef);
+      if (!bookingSnap.exists) {
+        throw Exception('Booking not found');
+      }
+      final data = bookingSnap.data() as Map<String, dynamic>;
+      final payments = Map<String, dynamic>.from(data['photographerPayments'] ?? {});
+      final current = (payments[photographerId] as num?)?.toDouble() ?? 0.0;
+      payments[photographerId] = current + amount;
+      txn.update(bookingRef, {'photographerPayments': payments});
+
+      final photographerSnap = await txn.get(photographerRef);
+      if (photographerSnap.exists) {
+        final currentBalance =
+            (photographerSnap.data()?['balance'] as num?)?.toDouble() ?? 0.0;
+        txn.update(photographerRef, {
+          'balance': currentBalance + amount,
+        });
+      }
     });
   }
 
