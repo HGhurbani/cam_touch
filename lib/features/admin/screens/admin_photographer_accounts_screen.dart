@@ -135,6 +135,11 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                                         );
                                         if (amount != null) {
                                           await firestoreService.recordPhotographerPayment(booking.id, pid, amount);
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('تم تسجيل الدفع')),
+                                            );
+                                          }
                                         }
                                       },
                                       child: const Text('دفع'),
