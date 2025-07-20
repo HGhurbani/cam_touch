@@ -11,6 +11,7 @@ import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import 'booking_detail_screen.dart'; // سنقوم بإنشاء هذه الشاشة تالياً
+import '../../../core/utils/status_utils.dart';
 
 class AdminBookingsManagementScreen extends StatefulWidget {
   const AdminBookingsManagementScreen({super.key});
@@ -111,7 +112,7 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
                                       size: 18,
                                     ),
                                     const SizedBox(width: 4),
-                                    Text(booking.status),
+                                    Text(getBookingStatusLabel(booking.status)),
                                   ],
                                 )),
                               ],

@@ -12,6 +12,7 @@ import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import 'booking_screen.dart'; // تأكد من هذا الاستيراد
 import 'client_rewards_screen.dart'; // استيراد جديد
+import '../../../core/utils/status_utils.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   const ClientDashboardScreen({super.key});
@@ -131,7 +132,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                               const SizedBox(height: 4),
                               Text('التاريخ: ${booking.bookingDate.toLocal().toString().split(' ')[0]}'),
                               Text('الوقت: ${booking.bookingTime}'),
-                              Text('الحالة: ${booking.status}'),
+                              Text('الحالة: ${getBookingStatusLabel(booking.status)}'),
                               if (booking.photographerId != null)
                                 Text('المصور المعين ID: ${booking.photographerId}'),
                               // يمكنك إضافة زر لعرض تفاصيل الحجز أو الفاتورة هنا

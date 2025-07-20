@@ -17,6 +17,7 @@ import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_app_bar.dart';
 import 'photographer_schedule_screen.dart'; // استيراد جديد لشاشة الجدول الزمني
+import '../../../core/utils/status_utils.dart';
 
 class PhotographerDashboardScreen extends StatefulWidget {
   const PhotographerDashboardScreen({super.key});
@@ -234,7 +235,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                               const SizedBox(height: 4),
                               Text('التاريخ والوقت: ${DateFormat('yyyy-MM-dd HH:mm').format(event.eventDateTime.toLocal())}'),
                               Text('الموقع: ${event.location}'),
-                              Text('الحالة: ${event.status}'),
+                              Text('الحالة: ${getEventStatusLabel(event.status)}'),
                               Text('خصم التأخير: ${event.lateDeductionAmount.toStringAsFixed(2)} ريال يمني'),
                               Text('مدة السماح: ${event.gracePeriodMinutes} دقيقة'),
                               const SizedBox(height: 10),

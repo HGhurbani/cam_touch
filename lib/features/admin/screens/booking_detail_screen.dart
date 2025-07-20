@@ -15,6 +15,7 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/dialogs/confirmation_dialog.dart'; // سنقوم بإنشاء هذا لاحقاً
 import '../../shared/widgets/custom_app_bar.dart';
+import '../../../core/utils/status_utils.dart';
 
 
 class BookingDetailScreen extends StatefulWidget {
@@ -414,7 +415,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               Text('المتبقي: ${(_booking!.estimatedCost - _booking!.paidAmount).toStringAsFixed(2)} ريال يمني',
                   style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
-            Text('الحالة: ${_booking!.status}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('الحالة: ${getBookingStatusLabel(_booking!.status)}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             if (_booking!.depositAmount != null)
               Text('مبلغ العربون: ${_booking!.depositAmount!.toStringAsFixed(2)} ريال يمني', style: const TextStyle(fontSize: 16)),
