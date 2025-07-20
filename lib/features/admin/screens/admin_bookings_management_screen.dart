@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // لتنسيق التاريخ
+import 'package:intl/intl.dart';
 
 import '../../../core/models/booking_model.dart';
 import '../../../core/services/auth_service.dart';
@@ -10,7 +10,7 @@ import '../../../core/services/firestore_service.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/loading_indicator.dart';
 import '../../shared/widgets/custom_app_bar.dart';
-import 'booking_detail_screen.dart'; // سنقوم بإنشاء هذه الشاشة تالياً
+import 'booking_detail_screen.dart';
 import '../../../core/utils/status_utils.dart';
 
 class AdminBookingsManagementScreen extends StatefulWidget {
@@ -20,8 +20,38 @@ class AdminBookingsManagementScreen extends StatefulWidget {
   State<AdminBookingsManagementScreen> createState() => _AdminBookingsManagementScreenState();
 }
 
-class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementScreen> {
+class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementScreen>
+    with TickerProviderStateMixin {
   String? _statusFilter;
+  String _searchQuery = '';
+  bool _isGridView = false;
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+
+  // الألوان الأساسية
+  static const Color primaryColor = Color(0xFF024650);
+  static const Color accentColor = Color(0xFFFF9403);
+
+  final List<Map<String, dynamic>> _statusTabs = [
+    {'status': null, 'label': 'الكل', 'icon': Icons.all_inclusive},
+    {'status': 'pending_admin_approval', 'label': 'قيد المراجعة', 'icon': Icons.pending_actions},
+    {'status': 'approved', 'label': 'موافق عليه', 'icon': Icons.check_circle},
+    {'status': 'deposit_paid', 'label': 'مدفوع العربون', 'icon': Icons.payment},
+    {'status': 'completed', 'label': 'مكتمل', 'icon': Icons.done_all},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _statusTabs.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,102 +67,527 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
     }
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'إدارة الحجوزات',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Navigator.of(context).pushNamed(AppRouter.adminAddBookingRoute),
-            tooltip: 'إضافة حجز',
+      backgroundColor: Colors.grey[50],
+      appBar: _buildAppBar(context),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildTabBar(),
+          Expanded(
+            child: StreamBuilder<List<BookingModel>>(
+              stream: firestoreService.getAllBookings(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const LoadingIndicator();
+                }
+                if (snapshot.hasError) {
+                  return _buildErrorState(snapshot.error.toString());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                final bookings = _filterBookings(snapshot.data!);
+                return TabBarView(
+                  controller: _tabController,
+                  children: _statusTabs.map((tab) {
+                    final filteredBookings = tab['status'] == null
+                        ? bookings
+                        : bookings.where((b) => b.status == tab['status']).toList();
+
+                    return _buildBookingsContent(filteredBookings);
+                  }).toList(),
+                );
+              },
+            ),
           ),
         ],
       ),
-      body: StreamBuilder<List<BookingModel>>(
-        stream: firestoreService.getAllBookings(), // جلب جميع الحجوزات
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const LoadingIndicator();
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('خطأ: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('لا توجد حجوزات لعرضها حالياً.'));
-          }
+      floatingActionButton: _buildFAB(),
+    );
+  }
 
-          final bookings = snapshot.data!;
-          final filteredBookings = _statusFilter == null
-              ? bookings
-              : bookings.where((b) => b.status == _statusFilter).toList();
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      title: const Text(
+        'إدارة الحجوزات',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+          onPressed: () => setState(() => _isGridView = !_isGridView),
+          tooltip: _isGridView ? 'عرض القائمة' : 'عرض الشبكة',
+        ),
+        IconButton(
+          icon: const Icon(Icons.filter_alt),
+          onPressed: _showFilterDialog,
+          tooltip: 'فلتر متقدم',
+        ),
+      ],
+    );
+  }
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButton<String?>(
-                  value: _statusFilter,
-                  hint: const Text('تصفية الحالة'),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('الكل')),
-                    DropdownMenuItem(value: 'pending_admin_approval', child: Text('قيد المراجعة')),
-                    DropdownMenuItem(value: 'approved', child: Text('موافق عليه')),
-                    DropdownMenuItem(value: 'rejected', child: Text('مرفوض')),
-                    DropdownMenuItem(value: 'deposit_paid', child: Text('دفع العربون')),
-                    DropdownMenuItem(value: 'completed', child: Text('مكتمل')),
-                    DropdownMenuItem(value: 'scheduled', child: Text('مجدول')),
-                  ],
-                  onChanged: (val) {
-                    setState(() => _statusFilter = val);
+  Widget _buildHeader() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // شريط البحث
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: 'البحث في الحجوزات...',
+                prefixIcon: Icon(Icons.search, color: primaryColor),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
                   },
+                )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('العميل')),
-                        DataColumn(label: Text('الخدمة')),
-                        DataColumn(label: Text('التاريخ')),
-                        DataColumn(label: Text('الحالة')),
-                      ],
-                      rows: filteredBookings
-                          .map(
-                            (booking) => DataRow(
-                              cells: [
-                                DataCell(Text(booking.clientName)),
-                                DataCell(Text(booking.serviceType)),
-                                DataCell(Text(DateFormat('yyyy-MM-dd').format(booking.bookingDate))),
-                                DataCell(Row(
-                                  children: [
-                                    Icon(
-                                      _getBookingStatusIcon(booking.status),
-                                      color: _getBookingStatusColor(booking.status),
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(getBookingStatusLabel(booking.status)),
-                                  ],
-                                )),
-                              ],
-                              onSelectChanged: (_) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => BookingDetailScreen(bookingId: booking.id),
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                          .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        indicatorColor: accentColor,
+        labelColor: primaryColor,
+        unselectedLabelColor: Colors.grey[600],
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        tabs: _statusTabs.map((tab) {
+          return Tab(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(tab['icon'], size: 18),
+                const SizedBox(width: 4),
+                Text(tab['label']),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildBookingsContent(List<BookingModel> bookings) {
+    if (bookings.isEmpty) {
+      return _buildEmptyFilterState();
+    }
+
+    return Container(
+      color: Colors.grey[50],
+      child: _isGridView ? _buildGridView(bookings) : _buildListView(bookings),
+    );
+  }
+
+  Widget _buildGridView(List<BookingModel> bookings) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.85,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: bookings.length,
+        itemBuilder: (context, index) => _buildBookingCard(bookings[index]),
+      ),
+    );
+  }
+
+  Widget _buildListView(List<BookingModel> bookings) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: bookings.length,
+      itemBuilder: (context, index) => _buildBookingListItem(bookings[index]),
+    );
+  }
+
+  Widget _buildBookingCard(BookingModel booking) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _navigateToBookingDetail(booking.id),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: primaryColor,
+                    radius: 16,
+                    child: Text(
+                      booking.clientName[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      booking.clientName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.work_outline, booking.serviceType),
+              const SizedBox(height: 6),
+              _buildInfoRow(
+                Icons.calendar_today,
+                DateFormat('dd/MM/yyyy').format(booking.bookingDate),
+              ),
+              const Spacer(),
+              _buildStatusChip(booking.status),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookingListItem(BookingModel booking) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _navigateToBookingDetail(booking.id),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: primaryColor,
+                radius: 24,
+                child: Text(
+                  booking.clientName[0].toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
               ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      booking.clientName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      booking.serviceType,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('dd/MM/yyyy').format(booking.bookingDate),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  _buildStatusChip(booking.status),
+                  const SizedBox(height: 8),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
             ],
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[600]),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 12,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    final statusColor = _getBookingStatusColor(status);
+    final statusIcon = _getBookingStatusIcon(status);
+    final statusLabel = getBookingStatusLabel(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(statusIcon, size: 12, color: statusColor),
+          const SizedBox(width: 4),
+          Text(
+            statusLabel,
+            style: TextStyle(
+              color: statusColor,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد حجوزات حالياً',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ستظهر الحجوزات الجديدة هنا',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed(AppRouter.adminAddBookingRoute),
+            icon: const Icon(Icons.add),
+            label: const Text('إضافة حجز جديد'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyFilterState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد نتائج',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'جرب تغيير معايير البحث أو الفلتر',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Colors.red[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.red[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => setState(() {}),
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة المحاولة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFAB() {
+    return FloatingActionButton.extended(
+      onPressed: () => Navigator.of(context).pushNamed(AppRouter.adminAddBookingRoute),
+      backgroundColor: accentColor,
+      icon: const Icon(Icons.add, color: Colors.white),
+      label: const Text(
+        'حجز جديد',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  List<BookingModel> _filterBookings(List<BookingModel> bookings) {
+    if (_searchQuery.isEmpty) return bookings;
+
+    return bookings.where((booking) {
+      return booking.clientName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          booking.serviceType.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
+  void _navigateToBookingDetail(String bookingId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BookingDetailScreen(bookingId: bookingId),
+      ),
+    );
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('فلتر متقدم'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('المزيد من خيارات الفلتر قريباً...'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('موافق'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -143,9 +598,9 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
       case 'pending_admin_approval':
         return Icons.pending_actions;
       case 'approved':
-        return Icons.check_circle_outline;
+        return Icons.check_circle;
       case 'rejected':
-        return Icons.cancel_outlined;
+        return Icons.cancel;
       case 'deposit_paid':
         return Icons.payment;
       case 'completed':
@@ -153,20 +608,20 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
       case 'scheduled':
         return Icons.event_available;
       default:
-        return Icons.info_outline;
+        return Icons.info;
     }
   }
 
   Color _getBookingStatusColor(String status) {
     switch (status) {
       case 'pending_admin_approval':
-        return Colors.orange;
+        return accentColor; // استخدام اللون المحدد
       case 'approved':
         return Colors.green;
       case 'rejected':
         return Colors.red;
       case 'deposit_paid':
-        return Colors.blue;
+        return primaryColor; // استخدام اللون الأساسي
       case 'completed':
         return Colors.purple;
       case 'scheduled':
