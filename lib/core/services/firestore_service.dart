@@ -161,8 +161,26 @@ class FirestoreService {
 
   // الحصول على قائمة بجميع المصورين
   Stream<List<PhotographerModel>> getAllPhotographers() {
-    return _db.collection('photographers_data').snapshots().map(
-            (snapshot) => snapshot.docs.map((doc) => PhotographerModel.fromFirestore(doc)).toList());
+    return _db
+        .collection('users')
+        .where('role', isEqualTo: 'photographer')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      return Future.wait(snapshot.docs.map((userDoc) async {
+        try {
+          final photographerSnap =
+              await _db.collection('photographers_data').doc(userDoc.id).get();
+          if (photographerSnap.exists) {
+            return PhotographerModel.fromFirestore(photographerSnap);
+          } else {
+            return PhotographerModel(uid: userDoc.id);
+          }
+        } catch (e) {
+          debugPrint('Error fetching photographer data for ${userDoc.id}: $e');
+          return PhotographerModel(uid: userDoc.id);
+        }
+      }).toList());
+    });
   }
 
   // ------------------------------------
