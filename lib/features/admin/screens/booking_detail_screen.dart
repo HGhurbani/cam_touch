@@ -436,7 +436,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 color: Colors.red,
               ),
             ],
-            if (_booking!.status == 'approved') ...[
+            if (_booking!.status == 'approved' || _booking!.status == 'scheduled') ...[
               CustomButton(
                 text: 'تسجيل دفع العربون',
                 onPressed: _recordDeposit,
