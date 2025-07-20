@@ -212,10 +212,8 @@ class FirestoreService {
 
       final photographerSnap = await txn.get(photographerRef);
       if (photographerSnap.exists) {
-        final currentBalance =
-            (photographerSnap.data()?['balance'] as num?)?.toDouble() ?? 0.0;
         txn.update(photographerRef, {
-          'balance': currentBalance + amount,
+          'balance': FieldValue.increment(amount),
         });
       }
     });
