@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/models/attendance_model.dart';
 import '../../../core/models/user_model.dart';
@@ -25,6 +26,15 @@ class _AdminAttendanceManagementScreenState
     extends State<AdminAttendanceManagementScreen> {
   DateTime? _selectedDate;
   String? _selectedPhotographerId;
+
+  void _launchGoogleMaps(double lat, double lng) async {
+    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      debugPrint('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,6 +190,16 @@ class _AdminAttendanceManagementScreenState
                                 ),
                                 Text('النوع: ${record.type == 'check_in' ? 'حضور' : 'انصراف'}'),
                                 Text('الوقت: ${DateFormat('yyyy-MM-dd HH:mm').format(record.timestamp)}'),
+                                Text('الإحداثيات: ${record.latitude.toStringAsFixed(4)}, ${record.longitude.toStringAsFixed(4)}'),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    icon: const Icon(Icons.map),
+                                    label: const Text('عرض الموقع على الخريطة'),
+                                    onPressed: () => _launchGoogleMaps(record.latitude, record.longitude),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
