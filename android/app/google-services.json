@@ -1,33 +1,13 @@
 {
   "project_info": {
-    "project_number": "1058080841852",
-    "firebase_url": "https://kisko-jump.firebaseio.com",
-    "project_id": "kisko-jump",
-    "storage_bucket": "kisko-jump.firebasestorage.app"
+    "project_number": "806620038503",
+    "project_id": "cam-touch-e83cb",
+    "storage_bucket": "cam-touch-e83cb.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1058080841852:android:2f609885e5e00f790669f9",
-        "android_client_info": {
-          "package_name": "com.app.bestwallpaperever"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAK2zpkft3iF8FSdHoO2n32KyMGQBkaM9w"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1058080841852:android:63584a43056e0cf10669f9",
+        "mobilesdk_app_id": "1:806620038503:android:8232f2514b2f07a34d1bc2",
         "android_client_info": {
           "package_name": "com.cam.touch.cam_touch_app"
         }
@@ -35,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAK2zpkft3iF8FSdHoO2n32KyMGQBkaM9w"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1058080841852:android:8eb98a542b73ebc00669f9",
-        "android_client_info": {
-          "package_name": "com.kisko.jump.hataki"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAK2zpkft3iF8FSdHoO2n32KyMGQBkaM9w"
+          "current_key": "AIzaSyA2uyez5aK5Uz_ajQ1Fc7kgKJdeVc-kGx8"
         }
       ],
       "services": {
