@@ -24,6 +24,7 @@ import '../features/admin/screens/reports/client_financial_report_screen.dart';
 import '../features/client/screens/client_rewards_screen.dart';
 import '../features/photographer/screens/photographer_deductions_screen.dart';
 import '../features/photographer/screens/photographer_schedule_screen.dart'; // استيراد جديد
+import '../features/admin/screens/photographer_detail_screen.dart';
 
 class AppRouter {
   static const String loginRoute = '/login';
@@ -50,6 +51,7 @@ class AppRouter {
   static const String clientRewardsRoute = '/client_rewards';
   static const String photographerDeductionsRoute = '/photographer_deductions';
   static const String photographerScheduleRoute = '/photographer_schedule'; // مسار جديد
+  static const String photographerDetailRoute = '/photographer_detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -100,6 +102,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const PhotographerDeductionsScreen());
       case photographerScheduleRoute: // حالة المسار الجديد
         return MaterialPageRoute(builder: (_) => const PhotographerScheduleScreen());
+      case photographerDetailRoute:
+        final id = settings.arguments as String;
+        return MaterialPageRoute(builder: (_) => PhotographerDetailScreen(photographerId: id));
 
       default:
         return MaterialPageRoute(builder: (_) => const Text('Error: Unknown route'));
