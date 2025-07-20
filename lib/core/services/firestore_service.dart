@@ -200,17 +200,21 @@ class FirestoreService {
     final photographerRef =
         _db.collection('photographers_data').doc(photographerId);
     await _db.runTransaction((txn) async {
+      // All reads should happen before any writes within the transaction.
       final bookingSnap = await txn.get(bookingRef);
+      final photographerSnap = await txn.get(photographerRef);
+
       if (!bookingSnap.exists) {
         throw Exception('Booking not found');
       }
+
       final data = bookingSnap.data() as Map<String, dynamic>;
       final payments = Map<String, dynamic>.from(data['photographerPayments'] ?? {});
       final current = (payments[photographerId] as num?)?.toDouble() ?? 0.0;
       payments[photographerId] = current + amount;
+
       txn.update(bookingRef, {'photographerPayments': payments});
 
-      final photographerSnap = await txn.get(photographerRef);
       if (photographerSnap.exists) {
         txn.update(photographerRef, {
           'balance': FieldValue.increment(amount),
