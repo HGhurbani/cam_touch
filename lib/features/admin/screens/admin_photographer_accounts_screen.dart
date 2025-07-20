@@ -93,12 +93,11 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            final ids = booking.photographerIds ??
+                            for (final pid in booking.photographerIds ??
                                 (booking.photographerId != null
                                     ? [booking.photographerId!]
-                                    : <String>[]);
-                            ...ids.map((pid) {
-                              return FutureBuilder<UserModel?>(
+                                    : <String>[]))
+                              FutureBuilder<UserModel?>(
                                 future: firestoreService.getUser(pid),
                                 builder: (context, userSnapshot) {
                                   final name = userSnapshot.data?.fullName ?? pid;
@@ -142,8 +141,7 @@ class _AdminPhotographerAccountsScreenState extends State<AdminPhotographerAccou
                                     ),
                                   );
                                 },
-                              );
-                            }).toList(),
+                              ),
                           ],
                         ),
                       ),
