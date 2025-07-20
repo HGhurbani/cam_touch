@@ -86,6 +86,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 16),
             CustomButton(
+              text: 'حجوزاتي',
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRouter.adminMyBookingsRoute);
+              },
+              color: Colors.orange,
+            ),
+            const SizedBox(height: 16),
+            CustomButton(
               text: 'إدارة المصورين',
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRouter.adminPhotographersManagementRoute);
