@@ -183,28 +183,25 @@ class FirestoreService {
     }
   }
 
-  // الحصول على قائمة بجميع المصورين
+  // الحصول على قائمة بجميع المصورين مع تحديث لحظي لبيانات الرصيد والخصومات
   Stream<List<PhotographerModel>> getAllPhotographers() {
     return _db
-        .collection('users')
-        .where('role', isEqualTo: 'photographer')
+        .collection('photographers_data')
         .snapshots()
-        .asyncMap((snapshot) async {
-      return Future.wait(snapshot.docs.map((userDoc) async {
-        try {
-          final photographerSnap =
-              await _db.collection('photographers_data').doc(userDoc.id).get();
-          if (photographerSnap.exists) {
-            return PhotographerModel.fromFirestore(photographerSnap);
-          } else {
-            return PhotographerModel(uid: userDoc.id);
-          }
-        } catch (e) {
-          debugPrint('Error fetching photographer data for ${userDoc.id}: $e');
-          return PhotographerModel(uid: userDoc.id);
-        }
-      }).toList());
-    });
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => PhotographerModel.fromFirestore(doc)).toList());
+  }
+
+  /// زيادة عداد الحجوزات المكتملة لمصور
+  Future<void> incrementPhotographerTotalBookings(String photographerId) async {
+    try {
+      await _db
+          .collection('photographers_data')
+          .doc(photographerId)
+          .update({'totalBookings': FieldValue.increment(1)});
+    } catch (e) {
+      debugPrint('Error incrementing totalBookings for $photographerId: $e');
+    }
   }
 
   /// تسجيل دفعة لمصور لحجز معين وتحديث رصيده
