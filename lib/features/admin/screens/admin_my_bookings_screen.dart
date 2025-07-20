@@ -23,7 +23,7 @@ class AdminMyBookingsScreen extends StatefulWidget {
 class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
   DateTime? _fromDate;
   DateTime? _toDate;
-  String? _statusFilter;
+  String? _statusFilter = 'approved';
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _photographerController = TextEditingController();
 
@@ -85,10 +85,9 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
             return const Center(child: Text('لا توجد حجوزات متاحة.'));
           }
 
-          List<BookingModel> bookings =
-              snapshot.data!.where((b) => b.status == 'approved').toList();
+          List<BookingModel> bookings = snapshot.data!;
 
-          // Apply filters
+          // Apply status filter
           if (_statusFilter != null) {
             bookings = bookings.where((b) => b.status == _statusFilter).toList();
           }
@@ -118,10 +117,6 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                     (b.photographerIds ?? [])
                         .any((id) => id.contains(photographerQuery)))
                 .toList();
-          }
-
-          if (bookings.isEmpty) {
-            return const Center(child: Text('لا توجد نتائج مطابقة للفلترة.'));
           }
 
           return Column(
@@ -181,7 +176,7 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                         setState(() {
                           _fromDate = null;
                           _toDate = null;
-                          _statusFilter = null;
+                          _statusFilter = 'approved';
                           _clientController.clear();
                           _photographerController.clear();
                         });
@@ -191,38 +186,40 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen> {
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('العميل')),
-                        DataColumn(label: Text('الخدمة')),
-                        DataColumn(label: Text('التاريخ')),
-                        DataColumn(label: Text('الحالة')),
-                      ],
-                      rows: bookings
-                          .map(
-                            (booking) => DataRow(
-                              cells: [
-                                DataCell(Text(booking.clientName)),
-                                DataCell(Text(booking.serviceType)),
-                                DataCell(Text(DateFormat('yyyy-MM-dd').format(booking.bookingDate))),
-                                DataCell(Text(getBookingStatusLabel(booking.status))),
-                              ],
-                              onSelectChanged: (_) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => BookingDetailScreen(bookingId: booking.id),
+                child: bookings.isEmpty
+                    ? const Center(child: Text('لا توجد نتائج مطابقة للفلترة.'))
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('العميل')),
+                              DataColumn(label: Text('الخدمة')),
+                              DataColumn(label: Text('التاريخ')),
+                              DataColumn(label: Text('الحالة')),
+                            ],
+                            rows: bookings
+                                .map(
+                                  (booking) => DataRow(
+                                    cells: [
+                                      DataCell(Text(booking.clientName)),
+                                      DataCell(Text(booking.serviceType)),
+                                      DataCell(Text(DateFormat('yyyy-MM-dd').format(booking.bookingDate))),
+                                      DataCell(Text(getBookingStatusLabel(booking.status))),
+                                    ],
+                                    onSelectChanged: (_) {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => BookingDetailScreen(bookingId: booking.id),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ),
               ),
             ],
           );
