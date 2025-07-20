@@ -69,6 +69,13 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             CustomButton(
+              text: 'إدارة العملاء',
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRouter.adminClientsManagementRoute);
+              },
+            ),
+            const SizedBox(height: 16),
+            CustomButton(
               text: 'جدولة الفعاليات',
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRouter.adminEventsSchedulingRoute);

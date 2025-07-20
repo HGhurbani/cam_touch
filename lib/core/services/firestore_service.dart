@@ -53,6 +53,16 @@ class FirestoreService {
     }
   }
 
+  // الحصول على قائمة بجميع العملاء
+  Stream<List<UserModel>> getAllClients() {
+    return _db
+        .collection('users')
+        .where('role', isEqualTo: 'client')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
+  }
+
   // ------------------------------------
   // Booking Management (Collection: 'bookings')
   // ------------------------------------
