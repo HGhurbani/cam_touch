@@ -284,10 +284,21 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               ),
             ],
           ),
-          child: const Icon(
-            Icons.camera_alt,
-            color: Colors.white,
-            size: 40,
+          // Changed from Icon to Image.asset for the logo
+          child: ClipOval(
+            child: Image.asset(
+              'assets/img/white_logo2.png', // Replace with your logo asset path
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover, // Adjust fit as needed
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.camera_alt, // Fallback to an icon if logo not found
+                  color: Colors.white,
+                  size: 40,
+                );
+              },
+            ),
           ),
         ),
         const SizedBox(height: 24),

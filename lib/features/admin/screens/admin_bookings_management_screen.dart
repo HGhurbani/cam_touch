@@ -36,8 +36,11 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
     {'status': null, 'label': 'الكل', 'icon': Icons.all_inclusive},
     {'status': 'pending_admin_approval', 'label': 'قيد المراجعة', 'icon': Icons.pending_actions},
     {'status': 'approved', 'label': 'موافق عليه', 'icon': Icons.check_circle},
+    {'status': 'rejected', 'label': 'مرفوض', 'icon': Icons.cancel},
     {'status': 'deposit_paid', 'label': 'مدفوع العربون', 'icon': Icons.payment},
+    {'status': 'scheduled', 'label': 'مجدول', 'icon': Icons.event_available},
     {'status': 'completed', 'label': 'مكتمل', 'icon': Icons.done_all},
+    {'status': 'cancelled', 'label': 'ملغي', 'icon': Icons.cancel_outlined},
   ];
 
   @override
@@ -122,11 +125,7 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
           onPressed: () => setState(() => _isGridView = !_isGridView),
           tooltip: _isGridView ? 'عرض القائمة' : 'عرض الشبكة',
         ),
-        IconButton(
-          icon: const Icon(Icons.filter_alt),
-          onPressed: _showFilterDialog,
-          tooltip: 'فلتر متقدم',
-        ),
+
       ],
     );
   }
@@ -175,13 +174,18 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
   Widget _buildTabBar() {
     return Container(
       color: Colors.white,
+      // Removed any padding from the Container to ensure TabBar starts from the edge
       child: TabBar(
         controller: _tabController,
-        isScrollable: true,
+        isScrollable: true, // Keep scrollable for "تجوال فيه"
+        tabAlignment: TabAlignment.start, // Align tabs to the start (right in RTL)
         indicatorColor: accentColor,
         labelColor: primaryColor,
         unselectedLabelColor: Colors.grey[600],
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Tajawal',
+        ),
         tabs: _statusTabs.map((tab) {
           return Tab(
             child: Row(
@@ -603,10 +607,12 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
         return Icons.cancel;
       case 'deposit_paid':
         return Icons.payment;
-      case 'completed':
-        return Icons.done_all;
       case 'scheduled':
         return Icons.event_available;
+      case 'completed':
+        return Icons.done_all;
+      case 'cancelled':
+        return Icons.cancel_outlined;
       default:
         return Icons.info;
     }
@@ -622,10 +628,12 @@ class _AdminBookingsManagementScreenState extends State<AdminBookingsManagementS
         return Colors.red;
       case 'deposit_paid':
         return primaryColor; // استخدام اللون الأساسي
-      case 'completed':
-        return Colors.purple;
       case 'scheduled':
         return Colors.teal;
+      case 'completed':
+        return Colors.purple;
+      case 'cancelled':
+        return Colors.orange;
       default:
         return Colors.grey;
     }

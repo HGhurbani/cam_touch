@@ -1,25 +1,79 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write to authenticated users
+    // Function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Function to check if user is photographer
+    function isPhotographer() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'photographer';
+    }
+    
+    // Function to check if user is client
+    function isClient() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client';
+    }
+    
+    // Function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Bookings collection - Admin can read/write all, others have limited access
     match /bookings/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() || isClient();
+      allow update: if isAdmin() || 
+                   (isOwner(resource.data.clientId) && resource.data.status != 'completed') ||
+                   (isPhotographer() && resource.data.photographerIds[request.auth.uid] != null);
+      allow delete: if isAdmin();
     }
+    
+    // Events collection - Admin can read/write all, photographers can read their events
     match /events/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
     }
+    
+    // Photographers data - Admin can read/write all, photographers can read/update their own
     match /photographers_data/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+      allow update: if isOwner(document);
     }
+    
+    // Attendance records - Admin can read/write all, photographers can read/update their own
     match /attendance_records/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+      allow create: if isPhotographer() && request.resource.data.photographerId == request.auth.uid;
+      allow update: if isPhotographer() && resource.data.photographerId == request.auth.uid;
     }
+    
+    // Users collection - Admin can read/write all, users can read/update their own
     match /users/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() || isOwner(document);
+      allow update: if isAdmin() || isOwner(document);
+      allow delete: if isAdmin();
     }
+    
     // Default rule for other collections
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -112,6 +112,16 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
       });
 
       final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+      
+      // التحقق من أن المستخدم الحالي هو مدير
+      final isAdmin = await firestoreService.isCurrentUserAdmin();
+      if (!isAdmin) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'ليس لديك صلاحية لإضافة الحجوزات. يجب أن تكون مديراً.';
+        });
+        return;
+      }
       final client = _clients.firstWhere((c) => c.uid == _selectedClientId);
       final booking = BookingModel(
         id: '',
@@ -133,19 +143,27 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
         updatedAt: null,
       );
 
-      String? bookingId = await firestoreService.addBooking(booking);
+      try {
+        String? bookingId = await firestoreService.addBooking(booking);
 
-      setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
 
-      if (bookingId != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إضافة الحجز بنجاح.')),
-        );
-        Navigator.of(context).pop();
-      } else {
-        setState(() => _errorMessage = 'فشل إضافة الحجز.');
+        if (bookingId != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم إضافة الحجز بنجاح.')),
+          );
+          Navigator.of(context).pop();
+        } else {
+          setState(() => _errorMessage = 'فشل إضافة الحجز.');
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'خطأ في إضافة الحجز: ${e.toString()}';
+        });
+        debugPrint('Error adding booking: $e');
       }
     }
   }
@@ -202,6 +220,31 @@ class _AdminAddBookingScreenState extends State<AdminAddBookingScreen> {
                       trailing: const Icon(Icons.access_time),
                       onTap: _pickTime,
                     ),
+                    
+                    // عرض رسالة الخطأ إذا وجدت
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          border: Border.all(color: Colors.red.shade200),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade600),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(color: Colors.red.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _selectedServiceType,

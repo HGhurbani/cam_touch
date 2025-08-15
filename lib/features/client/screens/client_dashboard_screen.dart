@@ -7,6 +7,8 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/models/booking_model.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_styles.dart';
 import '../../../routes/app_router.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/loading_indicator.dart';
@@ -26,53 +28,108 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen>
     with TickerProviderStateMixin {
   UserModel? _clientUser;
   late AnimationController _animationController;
+  late AnimationController _cardAnimationController;
+  late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _pulseAnimation;
   int _selectedIndex = 0;
-
-  // الألوان الأساسية
-  static const Color primaryColor = Color(0xFF024650);
-  static const Color accentColor = Color(0xFFFF9403);
-  static const Color backgroundColor = Color(0xFFF8F9FA);
-  static const Color cardColor = Colors.white;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
+    _loadClientData();
+  }
+
+  void _setupAnimations() {
+    // Main fade and slide animation
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+    ));
+
+    // Card staggered animation
+    _cardAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _cardAnimationController,
+      curve: const Interval(0.3, 1.0, curve: Curves.elasticOut),
+    ));
+
+    // Pulse animation for action buttons
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
       curve: Curves.easeInOut,
     ));
 
-    _loadClientData();
-    _animationController.forward();
+    _pulseController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _cardAnimationController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   Future<void> _loadClientData() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
-    if (authService.currentUser != null) {
-      _clientUser = await firestoreService.getUser(authService.currentUser!.uid);
-      if (mounted) setState(() {});
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+      
+      if (authService.currentUser != null) {
+        _clientUser = await firestoreService.getUser(authService.currentUser!.uid);
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _animationController.forward();
+          _cardAnimationController.forward();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // Handle error gracefully
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final firestoreService = Provider.of<FirestoreService>(context);
 
     if (authService.currentUser == null || authService.userRole != UserRole.client) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -81,18 +138,64 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen>
       return const LoadingIndicator();
     }
 
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: _buildLoadingState(),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColors.background,
       appBar: _buildModernAppBar(authService),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Column(
-          children: [
-            _buildHeaderSection(),
-            _buildQuickActions(),
-            Expanded(child: _buildBookingsSection(firestoreService, authService)),
-          ],
+      body: RefreshIndicator(
+        onRefresh: _loadClientData,
+        color: AppColors.primary,
+        backgroundColor: Colors.white,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  _buildWelcomeHeader(),
+                  const SizedBox(height: 20),
+                  _buildStatsSection(),
+                  const SizedBox(height: 24),
+                  _buildQuickActions(),
+                  const SizedBox(height: 16),
+                  _buildRecentActivity(),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            strokeWidth: 3,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'جاري التحميل...',
+            style: TextStyle(
+              color: AppColors.textLight,
+              fontSize: 14,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -100,556 +203,565 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen>
   PreferredSizeWidget _buildModernAppBar(AuthService authService) {
     return AppBar(
       elevation: 0,
-      backgroundColor: primaryColor,
-      title: const Text(
-        'لوحة التحكم',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(30),
+            bottomRight: Radius.circular(30),
+          ),
         ),
       ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'كام تاتش',
+            style: AppStyles.headline3.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            DateFormat('EEEE، d MMMM y', 'ar').format(DateTime.now()),
+            style: AppStyles.caption.copyWith(
+              color: AppColors.whiteWithOpacity(0.8),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
       actions: [
+        
         Container(
-          margin: const EdgeInsets.only(right: 12),
+          margin: const EdgeInsets.only(left: 12, right: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteWithOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.whiteWithOpacity(0.2),
+              width: 1,
+            ),
           ),
           child: IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+            icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
             onPressed: () => _showLogoutDialog(authService),
           ),
         ),
       ],
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [primaryColor, Color(0xFF035a66)],
-          ),
-        ),
-      ),
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildWelcomeHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withOpacity(0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [primaryColor, Color(0xFF035a66)],
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'مرحباً بك',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      _clientUser?.fullName ?? 'عميل كريم',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: accentColor.withOpacity(0.3)),
-            ),
-            child: const Text(
-              '📸 استمتع بتجربة تصوير استثنائية',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الإجراءات السريعة',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  icon: Icons.camera_alt_rounded,
-                  title: 'حجز جديد',
-                  subtitle: 'احجز جلسة تصوير',
-                  color: accentColor,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const BookingScreen()),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionCard(
-                  icon: Icons.stars_rounded,
-                  title: 'المكافآت',
-                  subtitle: 'نقاطك ومكافآتك',
-                  color: primaryColor,
-                  onTap: () => Navigator.of(context).pushNamed(AppRouter.clientRewardsRoute),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: color.withOpacity(0.1)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookingsSection(FirestoreService firestoreService, AuthService authService) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'حجوزاتي',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('تحديث'),
-                style: TextButton.styleFrom(
-                  foregroundColor: accentColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: StreamBuilder<List<BookingModel>>(
-              stream: firestoreService.getClientBookings(authService.currentUser!.uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return _buildLoadingShimmer();
-                }
-                if (snapshot.hasError) {
-                  return _buildErrorWidget(snapshot.error.toString());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                final bookings = snapshot.data!;
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  itemCount: bookings.length,
-                  itemBuilder: (context, index) {
-                    final booking = bookings[index];
-                    return _buildBookingCard(booking, firestoreService);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBookingCard(BookingModel booking, FirestoreService firestoreService) {
-    final statusColor = _getStatusColor(booking.status);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.whiteWithOpacity(0.2),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: AppColors.whiteWithOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.person_outline_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    booking.serviceType,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
+                Text(
+                  'أهلاً وسهلاً',
+                  style: AppStyles.body2.copyWith(
+                    color: AppColors.whiteWithOpacity(0.9),
+                    fontSize: 13,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  _clientUser?.fullName ?? 'عميل كريم',
+                  style: AppStyles.headline2.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: AppColors.secondary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.secondary.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
-                    getBookingStatusLabel(booking.status),
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 12,
+                    'عضو مميز',
+                    style: AppStyles.caption.copyWith(
+                      color: AppColors.secondary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 11,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              Icons.calendar_month_rounded,
-              'التاريخ',
-              DateFormat('yyyy/MM/dd').format(booking.bookingDate),
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              Icons.access_time_rounded,
-              'الوقت',
-              booking.bookingTime,
-            ),
-            if (booking.photographerIds != null && booking.photographerIds!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              FutureBuilder<List<UserModel?>>(
-                future: Future.wait(booking.photographerIds!.map((id) => firestoreService.getUser(id))),
-                builder: (context, snapshot) {
-                  final names = snapshot.data
-                      ?.whereType<UserModel>()
-                      .map((u) => u.fullName)
-                      .join(', ') ??
-                      'جاري التحميل...';
-                  return _buildInfoRow(
-                    Icons.person_rounded,
-                    'المصور',
-                    names,
-                  );
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 16, color: primaryColor),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: primaryColor,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.photo_camera_outlined,
-              size: 48,
-              color: accentColor.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'لا توجد حجوزات حتى الآن',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: primaryColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ رحلتك في التصوير بحجز أول جلسة',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BookingScreen()),
-            ),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('احجز الآن'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accentColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLoadingShimmer() {
-    return ListView.builder(
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 20,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
+  Widget _buildStatsSection() {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildEnhancedStatCard(
+                icon: Icons.camera_alt_rounded,
+                value: '0',
+                label: 'جلسات التصوير',
+                color: AppColors.secondary,
+                delay: 0,
               ),
-              const SizedBox(height: 12),
-              Container(
-                height: 16,
-                width: 150,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildEnhancedStatCard(
+                icon: Icons.stars_rounded,
+                value: '0',
+                label: 'النقاط المكتسبة',
+                color: AppColors.info,
+                delay: 200,
               ),
-            ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildEnhancedStatCard(
+                icon: Icons.calendar_month_rounded,
+                value: '0',
+                label: 'حجوزات قادمة',
+                color: AppColors.primary,
+                delay: 400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required int delay,
+  }) {
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 800 + delay),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.elasticOut,
+      builder: (context, animation, child) {
+        return Transform.scale(
+          scale: animation,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+              ],
+              border: Border.all(
+                color: color.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  style: AppStyles.headline3.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: AppStyles.caption.copyWith(
+                    color: AppColors.textLight,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildErrorWidget(String error) {
-    return Center(
+  Widget _buildQuickActions() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 48,
-            color: Colors.red[400],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.flash_on_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'الإجراءات السريعة',
+                style: AppStyles.headline4.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'حدث خطأ في تحميل البيانات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+          _buildActionGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionGrid() {
+    final actions = [
+      {
+        'icon': Icons.camera_alt_rounded,
+        'title': 'حجز جديد',
+        'subtitle': 'احجز جلسة تصوير',
+        'color': AppColors.secondary,
+        'onTap': () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BookingScreen()),
+        ),
+        'isPrimary': true,
+      },
+      {
+        'icon': Icons.stars_rounded,
+        'title': 'المكافآت',
+        'subtitle': 'نقاطك ومكافآتك',
+        'color': AppColors.info,
+        'onTap': () => Navigator.of(context).pushNamed(AppRouter.clientRewardsRoute),
+        'isPrimary': false,
+      },
+      {
+        'icon': Icons.calendar_month_rounded,
+        'title': 'حجوزاتي',
+        'subtitle': 'عرض جميع حجوزاتي',
+        'color': AppColors.primary,
+        'onTap': () => Navigator.of(context).pushNamed(AppRouter.clientBookingsRoute),
+        'isPrimary': false,
+      },
+      {
+        'icon': Icons.support_agent_rounded,
+        'title': 'الدعم',
+        'subtitle': 'تواصل معنا',
+        'color': AppColors.success,
+        'onTap': () {
+          // TODO: Navigate to support
+        },
+        'isPrimary': false,
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.1,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: actions.length,
+      itemBuilder: (context, index) {
+        final action = actions[index];
+        return _buildEnhancedActionCard(
+          icon: action['icon'] as IconData,
+          title: action['title'] as String,
+          subtitle: action['subtitle'] as String,
+          color: action['color'] as Color,
+          onTap: action['onTap'] as VoidCallback,
+          isPrimary: action['isPrimary'] as bool,
+          delay: index * 100,
+        );
+      },
+    );
+  }
+
+  Widget _buildEnhancedActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+    required bool isPrimary,
+    required int delay,
+  }) {
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 600 + delay),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutBack,
+      builder: (context, animation, child) {
+        return Transform.scale(
+          scale: animation,
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: isPrimary ? _pulseAnimation.value : 1.0,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(25),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isPrimary ? color.withOpacity(0.05) : Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color: isPrimary ? color.withOpacity(0.2) : color.withOpacity(0.1),
+                          width: isPrimary ? 2 : 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(isPrimary ? 0.15 : 0.08),
+                            blurRadius: isPrimary ? 12 : 8,
+                            offset: const Offset(0, 4),
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(isPrimary ? 0.15 : 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(icon, color: color, size: 24),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            title,
+                            style: AppStyles.body1.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isPrimary ? color : AppColors.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: AppStyles.caption.copyWith(
+                              color: AppColors.textLight,
+                              fontSize: 11,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
+        );
+      },
+    );
+  }
+
+  Widget _buildRecentActivity() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.history_rounded,
+                  color: AppColors.info,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'النشاط الأخير',
+                style: AppStyles.headline4.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  color: AppColors.textLight,
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'لا توجد أنشطة حديثة',
+                  style: AppStyles.body1.copyWith(
+                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'ستظهر هنا جلسات التصوير والأنشطة الأخيرة',
+                  style: AppStyles.caption.copyWith(
+                    color: AppColors.textLight,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'مؤكد':
-        return Colors.green;
-      case 'pending':
-      case 'في الانتظار':
-        return accentColor;
-      case 'cancelled':
-      case 'ملغي':
-        return Colors.red;
-      case 'completed':
-      case 'مكتمل':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
-
   void _showLogoutDialog(AuthService authService) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل تريد تسجيل الخروج من الحساب؟'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                Icons.logout_rounded,
+                color: AppColors.error,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('تسجيل الخروج'),
+          ],
+        ),
+        content: const Text(
+          'هل تريد تسجيل الخروج من الحساب؟',
+          style: TextStyle(height: 1.5),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
+            child: Text(
+              'إلغاء',
+              style: TextStyle(color: AppColors.textLight),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -657,8 +769,12 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen>
               await authService.signOut();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             child: const Text('تسجيل الخروج'),
           ),

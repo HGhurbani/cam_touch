@@ -8,6 +8,7 @@ import '../models/booking_model.dart';
 import '../models/photographer_model.dart';
 import '../models/event_model.dart';
 import '../models/attendance_model.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // استيراد جديد لـ FirebaseAuth
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -29,6 +30,29 @@ class FirestoreService {
       debugPrint('Error getting user $uid: $e');
       return null;
     }
+  }
+
+  // التحقق من دور المستخدم الحالي
+  Future<String?> getCurrentUserRole() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return null;
+      
+      DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc.get('role') as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting current user role: $e');
+      return null;
+    }
+  }
+
+  // التحقق من أن المستخدم الحالي هو مدير
+  Future<bool> isCurrentUserAdmin() async {
+    final role = await getCurrentUserRole();
+    return role == 'admin';
   }
 
   // تحديث بيانات مستخدم
@@ -80,11 +104,17 @@ class FirestoreService {
   // إنشاء طلب حجز جديد
   Future<String?> addBooking(BookingModel booking) async {
     try {
+      // التحقق من أن المستخدم الحالي هو مدير أو عميل
+      final userRole = await getCurrentUserRole();
+      if (userRole != 'admin' && userRole != 'client') {
+        throw Exception('Permission denied: Only admins and clients can create bookings');
+      }
+      
       DocumentReference docRef = await _db.collection('bookings').add(booking.toFirestore());
       return docRef.id;
     } catch (e) {
       debugPrint('Error adding booking: $e');
-      return null;
+      rethrow; // إعادة رمي الخطأ بدلاً من إرجاع null
     }
   }
 
@@ -366,7 +396,7 @@ class FirestoreService {
           minimumVersion: '1.0.0',
         ),
         socialMetaTagParameters: SocialMetaTagParameters(
-          title: 'Cam Touch: حجز جلسات تصوير احترافية!',
+          title: 'كام تاتش : حجز جلسات تصوير احترافية!',
           description: 'انضم إلينا واحصل على مكافآت عند التسجيل عبر هذا الرابط!',
           imageUrl: Uri.parse('https://your-app-logo.com/logo.png'), // استبدل بشعار تطبيقك
         ),

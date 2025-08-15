@@ -25,12 +25,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   bool _isLoading = true;
   late AnimationController _fadeController;
   late AnimationController _slideController;
+  late AnimationController _headerController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _headerAnimation;
 
   // الألوان الأساسية
   static const Color primaryColor = Color(0xFF024650);
   static const Color secondaryColor = Color(0xFFFF9403);
+  static const Color lightGray = Color(0xFFF8F9FA);
+  static const Color darkGray = Color(0xFF666666);
+  static const Color cardShadowColor = Color(0x1A000000);
 
   @override
   void initState() {
@@ -41,10 +46,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   void _setupAnimations() {
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     _slideController = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    );
+    _headerController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
@@ -54,15 +63,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOutQuart,
     ));
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.5),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.elasticOut,
+    ));
+
+    _headerAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _headerController,
+      curve: Curves.easeOutCubic,
     ));
   }
 
@@ -75,13 +92,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         _adminUser = await firestoreService.getUser(authService.currentUser!.uid);
       }
     } catch (e) {
-      // Handle error silently or show snackbar
       debugPrint('Error loading admin user: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('حدث خطأ في تحميل بيانات المدير'),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
         _fadeController.forward();
         _slideController.forward();
+        _headerController.forward();
       }
     }
   }
@@ -90,6 +117,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+    _headerController.dispose();
     super.dispose();
   }
 
@@ -110,13 +138,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: lightGray,
       appBar: _buildCustomAppBar(authService),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: _buildDashboardContent(authService),
+      body: RefreshIndicator(
+        onRefresh: _loadAdminUser,
+        color: secondaryColor,
+        backgroundColor: Colors.white,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: _buildDashboardContent(authService),
+          ),
         ),
       ),
     );
@@ -129,17 +162,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
-              color: secondaryColor,
-              strokeWidth: 3,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: secondaryColor,
+                  strokeWidth: 4,
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
-              'جاري التحميل...',
+              'جاري تحميل لوحة التحكم...',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'يرجى الانتظار',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -151,52 +204,133 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   PreferredSizeWidget _buildCustomAppBar(AuthService authService) {
     return AppBar(
       elevation: 0,
-      backgroundColor: primaryColor,
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: secondaryColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.admin_panel_settings,
-              color: secondaryColor,
-              size: 24,
-            ),
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.white,
+      toolbarHeight: 85,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              primaryColor,
+              primaryColor.withOpacity(0.9),
+            ],
           ),
-          const SizedBox(width: 12),
-          const Text(
-            'لوحة تحكم المدير',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          child: IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.logout_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            onPressed: () => _showLogoutDialog(authService),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(30),
+            bottomRight: Radius.circular(30),
           ),
         ),
-      ],
+      ),
+      title: AnimatedBuilder(
+        animation: _headerAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, 30 * (1 - _headerAnimation.value)),
+            child: Opacity(
+              opacity: _headerAnimation.value,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Hero(
+                        tag: 'admin_logo',
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              'assets/img/white_logo2.png',
+                              height: 42,
+                              width: 42,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: secondaryColor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    color: secondaryColor,
+                                    size: 28,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'لوحة تحكم المدير',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            'مرحباً ${_adminUser?.fullName ?? 'المدير'}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _showLogoutDialog(authService),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -204,30 +338,106 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        // Header Section
+        // Welcome Header
         SliverToBoxAdapter(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  primaryColor,
-                  primaryColor.withOpacity(0.8),
-                ],
-              ),
-            ),
-            child: _buildWelcomeHeader(authService),
+          child: AnimatedBuilder(
+            animation: _headerAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, 40 * (1 - _headerAnimation.value)),
+                child: Opacity(
+                  opacity: _headerAnimation.value,
+                  child:                   Container(
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white,
+                          Colors.white.withOpacity(0.95),
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: cardShadowColor,
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [secondaryColor, secondaryColor.withOpacity(0.8)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: secondaryColor.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.dashboard_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'أهلاً وسهلاً بك',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: primaryColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'إدارة شاملة وسهلة لجميع العمليات',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: darkGray,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
 
         // Dashboard Cards
         SliverPadding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 1.1,
+              childAspectRatio: 0.95,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
             ),
@@ -235,98 +445,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ),
         ),
 
-        // Quick Actions
-        SliverToBoxAdapter(
-          child: _buildQuickActions(),
+
+
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 40),
         ),
       ],
     );
   }
 
-  Widget _buildWelcomeHeader(AuthService authService) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: secondaryColor.withOpacity(0.2),
-                child: Text(
-                  _getInitials(),
-                  style: const TextStyle(
-                    color: secondaryColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'مرحباً بعودتك',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _adminUser?.fullName ?? 'المدير',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  color: secondaryColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'اختر من الخيارات أدناه لإدارة النظام',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   List<Widget> _buildDashboardCards() {
     final cards = [
       _DashboardCard(
         title: 'إدارة الحجوزات',
-        icon: Icons.book_online,
+        subtitle: 'إدارة جميع الحجوزات',
+        icon: Icons.calendar_today_outlined,
         color: secondaryColor,
         onTap: () => _navigateWithAnimation(
           const AdminBookingsManagementScreen(),
@@ -334,155 +469,104 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       ),
       _DashboardCard(
         title: 'حجوزاتي',
-        icon: Icons.my_library_books,
-        color: Colors.orange,
+        subtitle: 'فلترة حسب التاريخ',
+        icon: Icons.event_note_outlined,
+        color: Colors.orange.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminMyBookingsRoute),
       ),
       _DashboardCard(
         title: 'إدارة المصورين',
-        icon: Icons.camera_alt,
+        subtitle: 'إعدادات وخدمات المصورين',
+        icon: Icons.camera_alt_outlined,
         color: primaryColor,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminPhotographersManagementRoute),
       ),
       _DashboardCard(
         title: 'حسابات المصورين',
-        icon: Icons.manage_accounts,
-        color: Colors.deepPurple,
+        subtitle: 'إدارة حسابات المصورين',
+        icon: Icons.people_alt_outlined,
+        color: Colors.deepPurple.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminPhotographerAccountsRoute),
       ),
       _DashboardCard(
         title: 'إدارة العملاء',
-        icon: Icons.people,
-        color: Colors.green,
+        subtitle: 'بيانات ومتابعة العملاء',
+        icon: Icons.person_outline,
+        color: Colors.green.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminClientsManagementRoute),
       ),
       _DashboardCard(
         title: 'جدولة الفعاليات',
-        icon: Icons.event,
-        color: Colors.blue,
+        subtitle: 'تنظيم وإدارة الفعاليات',
+        icon: Icons.event_available_outlined,
+        color: Colors.blue.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminEventsSchedulingRoute),
       ),
       _DashboardCard(
         title: 'الحضور والغياب',
-        icon: Icons.how_to_reg,
-        color: Colors.indigo,
+        subtitle: 'متابعة حضور الموظفين',
+        icon: Icons.how_to_reg_outlined,
+        color: Colors.indigo.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminAttendanceManagementRoute),
       ),
       _DashboardCard(
         title: 'الإعدادات',
-        icon: Icons.settings,
-        color: Colors.teal,
+        subtitle: 'إعدادات النظام العامة',
+        icon: Icons.settings_outlined,
+        color: Colors.teal.shade600,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminSettingsRoute),
       ),
     ];
 
-    return cards.map((card) {
-      final index = cards.indexOf(card);
+    return cards.asMap().entries.map((entry) {
+      final index = entry.key;
+      final card = entry.value;
+
       return TweenAnimationBuilder<double>(
-        duration: Duration(milliseconds: 300 + (index * 100)),
+        duration: Duration(milliseconds: 400 + (index * 100)),
         tween: Tween(begin: 0.0, end: 1.0),
+        curve: Curves.easeOutBack,
         builder: (context, value, child) {
           return Transform.scale(
-            scale: value,
-            child: card,
+            scale: 0.8 + (0.2 * value),
+            child: Transform.translate(
+              offset: Offset(0, 50 * (1 - value)),
+              child: Opacity(
+                opacity: value,
+                child: card,
+              ),
+            ),
           );
         },
       );
     }).toList();
   }
 
-  Widget _buildQuickActions() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'إجراءات سريعة',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _QuickActionButton(
-                  icon: Icons.analytics,
-                  label: 'التقارير',
-                  onTap: () {
-                    // Navigate to reports
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _QuickActionButton(
-                  icon: Icons.notifications,
-                  label: 'الإشعارات',
-                  onTap: () {
-                    // Navigate to notifications
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _QuickActionButton(
-                  icon: Icons.help_center,
-                  label: 'المساعدة',
-                  onTap: () {
-                    // Navigate to help
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getInitials() {
-    final name = _adminUser?.fullName ?? 'المدير';
-    if (name.isEmpty) return 'م';
-
-    final words = name.split(' ');
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}';
-    }
-    return name[0];
-  }
-
   void _navigateWithAnimation(Widget screen) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => screen,
+        transitionDuration: const Duration(milliseconds: 400),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
-          const curve = Curves.ease;
+          const curve = Curves.easeOutCubic;
 
-          var tween = Tween(begin: begin, end: end).chain(
+          var slideAnimation = Tween(begin: begin, end: end).chain(
             CurveTween(curve: curve),
-          );
+          ).animate(animation);
+
+          var fadeAnimation = Tween(begin: 0.0, end: 1.0).chain(
+            CurveTween(curve: Curves.easeIn),
+          ).animate(animation);
 
           return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
+            position: slideAnimation,
+            child: FadeTransition(
+              opacity: fadeAnimation,
+              child: child,
+            ),
           );
         },
       ),
@@ -492,40 +576,114 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   void _showLogoutDialog(AuthService authService) {
     showDialog(
       context: context,
+      barrierColor: Colors.black54,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
-        title: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.bold,
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
           ),
-        ),
-        content: const Text('هل تريد تسجيل الخروج من النظام؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await authService.signOut();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: secondaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  size: 40,
+                  color: Colors.red.shade400,
+                ),
               ),
-            ),
-            child: const Text(
-              'تسجيل الخروج',
-              style: TextStyle(color: Colors.white),
-            ),
+              const SizedBox(height: 24),
+              Text(
+                'تسجيل الخروج',
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'هل أنت متأكد أنك تريد تسجيل الخروج من لوحة التحكم؟',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: darkGray,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: darkGray,
+                        backgroundColor: Colors.grey.shade100,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'إلغاء',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        // Show loading indicator
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(
+                            child: CircularProgressIndicator(color: secondaryColor),
+                          ),
+                        );
+                        await authService.signOut();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: secondaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'تسجيل الخروج',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -533,12 +691,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
 class _DashboardCard extends StatelessWidget {
   final String title;
+  final String subtitle;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
   const _DashboardCard({
     required this.title,
+    required this.subtitle,
     required this.icon,
     required this.color,
     required this.onTap,
@@ -550,97 +710,85 @@ class _DashboardCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(30),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+                color: const Color(0x1A000000),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        color,
+                        color.withOpacity(0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 32,
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF024650),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: const Color(0xFF666666).withOpacity(0.8),
+                    fontWeight: FontWeight.w400,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF9403).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFFF9403).withOpacity(0.2),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: color.withOpacity(0.7),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: const Color(0xFFFF9403),
-                size: 24,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF024650),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
           ),
         ),
       ),

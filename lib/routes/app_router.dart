@@ -20,6 +20,7 @@ import '../features/admin/screens/admin_my_bookings_screen.dart';
 import '../features/admin/screens/admin_attendance_management_screen.dart';
 import '../features/admin/screens/admin_settings_screen.dart';
 import '../features/client/screens/client_rewards_screen.dart';
+import '../features/client/screens/client_bookings_screen.dart';
 import '../features/photographer/screens/photographer_deductions_screen.dart';
 import '../features/photographer/screens/photographer_schedule_screen.dart'; // استيراد جديد
 import '../features/admin/screens/photographer_detail_screen.dart';
@@ -43,6 +44,7 @@ class AppRouter {
   static const String adminMyBookingsRoute = '/admin_my_bookings';
   static const String adminAttendanceManagementRoute = '/admin_attendance_management';
   static const String clientRewardsRoute = '/client_rewards';
+  static const String clientBookingsRoute = '/client_bookings';
   static const String photographerDeductionsRoute = '/photographer_deductions';
   static const String photographerScheduleRoute = '/photographer_schedule'; // مسار جديد
   static const String photographerDetailRoute = '/photographer_detail';
@@ -87,6 +89,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AdminAttendanceManagementScreen());
       case clientRewardsRoute:
         return MaterialPageRoute(builder: (_) => const ClientRewardsScreen());
+      case clientBookingsRoute:
+        return MaterialPageRoute(builder: (_) => const ClientBookingsScreen());
       case photographerDeductionsRoute:
         return MaterialPageRoute(builder: (_) => const PhotographerDeductionsScreen());
       case photographerScheduleRoute: // حالة المسار الجديد

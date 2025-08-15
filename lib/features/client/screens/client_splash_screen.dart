@@ -24,7 +24,7 @@ class _ClientSplashScreenState extends State<ClientSplashScreen> {
   // List of splash screen content for the flipping effect
   final List<Map<String, String>> _splashContent = [
     {
-      'title': 'مرحباً بك في Cam Touch',
+      'title': 'مرحباً بك في كام تاتش',
       'description':
       'متخصصون في توثيق الفعاليات والمناسبات باحترافية عالية، وعدسة تلتقط أكثر من مجرد صورة — تخلّد لحظة، وتحكي قصة. بجودة لا تُضاهى وفريق مبدع، نمنح كل مناسبة طابعاً فنياً يبقى في الذاكرة.',
     },
@@ -36,7 +36,7 @@ class _ClientSplashScreenState extends State<ClientSplashScreen> {
     {
       'title': 'سهولة الحجز، جودة لا تضاهى',
       'description':
-      'مع Cam Touch، أصبح حجز مصور لفعاليتك أسهل من أي وقت مضى. تصفح، احجز، ودعنا نعتني بالباقي. تجربة احترافية تبدأ من هنا.',
+      'مع كام تاتش، أصبح حجز مصور لفعاليتك أسهل من أي وقت مضى. تصفح، احجز، ودعنا نعتني بالباقي. تجربة احترافية تبدأ من هنا.',
     },
   ];
 
@@ -114,7 +114,7 @@ class _ClientSplashScreenState extends State<ClientSplashScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Logo
-                        Image.asset('assets/img/white_logo.png', height: 150), // Larger logo
+                        Image.asset('assets/img/white_logo2.png', height: 150), // Larger logo
                         const SizedBox(height: 40),
                         // Title
                         Text(

@@ -141,14 +141,20 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen>
 
   Color _getStatusColor(String status) {
     switch (status) {
+      case 'pending_admin_approval':
+        return accentColor;
       case 'approved':
         return Colors.green;
+      case 'rejected':
+        return Colors.red;
       case 'deposit_paid':
         return Colors.blue;
-      case 'completed':
-        return primaryColor;
       case 'scheduled':
         return accentColor;
+      case 'completed':
+        return primaryColor;
+      case 'cancelled':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -246,10 +252,13 @@ class _AdminMyBookingsScreenState extends State<AdminMyBookingsScreen>
         underline: const SizedBox(),
         items: const [
           DropdownMenuItem(value: null, child: Text('الكل')),
+          DropdownMenuItem(value: 'pending_admin_approval', child: Text('قيد المراجعة')),
           DropdownMenuItem(value: 'approved', child: Text('موافق عليه')),
+          DropdownMenuItem(value: 'rejected', child: Text('مرفوض')),
           DropdownMenuItem(value: 'deposit_paid', child: Text('دفع العربون')),
-          DropdownMenuItem(value: 'completed', child: Text('مكتمل')),
           DropdownMenuItem(value: 'scheduled', child: Text('مجدول')),
+          DropdownMenuItem(value: 'completed', child: Text('مكتمل')),
+          DropdownMenuItem(value: 'cancelled', child: Text('ملغي')),
         ],
         onChanged: (val) => setState(() => _statusFilter = val),
       ),

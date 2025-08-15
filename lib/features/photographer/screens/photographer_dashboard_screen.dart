@@ -36,7 +36,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
   late TabController _tabController;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  int _currentPageIndex = 0;
+  // Removed _currentPageIndex as it's no longer needed after removing bottomNavigationBar
 
   // Theme colors
   static const Color primaryColor = Color(0xFF024650);
@@ -442,9 +442,9 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
             _buildInfoRow(Icons.location_on, 'الموقع', event.location),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.money_off, 'خصم التأخير',
-                '${event.lateDeductionAmount.toStringAsFixed(2)} ريال يمني'),
+                '${(event.lateDeductionAmount ?? 0.0).toStringAsFixed(2)} ريال يمني'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.timer, 'مدة السماح', '${event.gracePeriodMinutes} دقيقة'),
+            _buildInfoRow(Icons.timer, 'مدة السماح بالتأخير', '${event.gracePeriodMinutes ?? 10} دقيقة'),
             const SizedBox(height: 20),
             FutureBuilder<bool>(
               future: _hasCheckedIn(event.id),
@@ -594,6 +594,14 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                     color: textSecondary,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'التكلفة: ${(booking.estimatedCost ?? 0.0).toStringAsFixed(2)} ريال',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -665,7 +673,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
       child: Scaffold(
         backgroundColor: backgroundColor,
         appBar: AppBar(
-          title: Text(
+          title: const Text(
             'لوحة تحكم المصور',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -773,23 +781,23 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
                   children: [
                     _buildQuickActionCard(
                       Icons.calendar_month,
-                      'الجدول الزمني',
-                      'عرض مواعيدك',
+                      'حجوزاتي',
+                      'عرض الحجوزات والمدفوعات',
                           () {
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const PhotographerScheduleScreen()),
                         );
                       },
                     ),
-                    const SizedBox(width: 12),
-                    _buildQuickActionCard(
-                      Icons.receipt_long,
-                      'التقارير',
-                      'تقارير الخصومات',
-                          () {
-                        Navigator.of(context).pushNamed(AppRouter.photographerDeductionsRoute);
-                      },
-                    ),
+                    // const SizedBox(width: 12),
+                    // _buildQuickActionCard(
+                    //   Icons.receipt_long,
+                    //   'التقارير',
+                    //   'تقارير الخصومات',
+                    //       () {
+                    //     Navigator.of(context).pushNamed(AppRouter.photographerDeductionsRoute);
+                    //   },
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -1029,89 +1037,7 @@ class _PhotographerDashboardScreenState extends State<PhotographerDashboardScree
             ),
           ),
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildBottomNavItem(
-                    Icons.dashboard,
-                    'الرئيسية',
-                    0,
-                        () => setState(() => _currentPageIndex = 0),
-                  ),
-                  _buildBottomNavItem(
-                    Icons.event,
-                    'الفعاليات',
-                    1,
-                        () => setState(() => _currentPageIndex = 1),
-                  ),
-                  _buildBottomNavItem(
-                    Icons.camera_alt,
-                    'الحجوزات',
-                    2,
-                        () => setState(() => _currentPageIndex = 2),
-                  ),
-                  _buildBottomNavItem(
-                    Icons.person,
-                    'الملف الشخصي',
-                    3,
-                        () => setState(() => _currentPageIndex = 3),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(IconData icon, String label, int index, VoidCallback onTap) {
-    final isSelected = _currentPageIndex == index;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                icon,
-                color: isSelected ? primaryColor : textSecondary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? primaryColor : textSecondary,
-              ),
-            ),
-          ],
-        ),
+        // Removed bottomNavigationBar
       ),
     );
   }
