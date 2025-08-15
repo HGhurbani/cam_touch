@@ -9,7 +9,7 @@ android {
     namespace = "com.cam.touch.cam_touch_app"
     // Explicitly set the compileSdk version to resolve
     // resource linking issues with newer Android attributes
-    compileSdk = 33
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
     
     // Fix for printing plugin compatibility
@@ -47,7 +47,7 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         // Target the same API level as the compileSdk for consistency
-        targetSdk = 33
+        targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
