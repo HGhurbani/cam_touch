@@ -5,6 +5,10 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// Read version info from Gradle properties or fall back to defaults.
+def flutterVersionCode = project.hasProperty('flutterVersionCode') ? project.getProperty('flutterVersionCode').toInteger() : 1
+def flutterVersionName = project.hasProperty('flutterVersionName') ? project.getProperty('flutterVersionName') : "1.0"
+
 android {
     namespace = "com.cam.touch.cam_touch_app"
     // Explicitly set the compileSdk version to resolve
@@ -48,8 +52,8 @@ android {
         minSdk = flutter.minSdkVersion
         // Target the same API level as the compileSdk for consistency
         targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = flutterVersionCode
+        versionName = flutterVersionName
     }
 
     buildTypes {
