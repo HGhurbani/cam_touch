@@ -1,22 +1,20 @@
 # Cam Touch App
 
-<div align="right">
-تطبيق Flutter احترافي يربط العملاء بالمصورين، مع دعم إدارة الحجوزات، الإشعارات، التخزين السحابي، وميزات Firebase المتقدمة.
-</div>
+A professional Flutter application that connects clients with photographers, with support for booking management, notifications, cloud storage, and advanced Firebase features.
 
 ## ✨ Overview
 
-**Cam Touch** هو مشروع Flutter يعتمد على Firebase لتقديم تجربة متكاملة لإدارة خدمات التصوير، من التسجيل والمصادقة إلى تخزين الملفات والإشعارات.
+**Cam Touch** is a Flutter project built on Firebase to provide a complete workflow for photography services, from registration and authentication to file storage and notifications.
 
-### المزايا الرئيسية
+### Key Features
 
-- 🔐 **Authentication** عبر Firebase Auth.
-- 🗂️ **Cloud Firestore** لإدارة بيانات التطبيق.
-- ☁️ **Firebase Storage** لرفع وحفظ الملفات (مثل الفواتير والمرفقات).
-- 🔔 **Push Notifications** عبر Firebase Messaging.
-- 🧭 **Maps & Location** باستخدام Google Maps و Geolocator.
-- 📄 **PDF Generation** لإنشاء وطباعة المستندات.
-- 🌍 **Localization-ready** مع `flutter_localizations`.
+- 🔐 **Authentication** via Firebase Auth.
+- 🗂️ **Cloud Firestore** for application data management.
+- ☁️ **Firebase Storage** for uploading and storing files (such as invoices and attachments).
+- 🔔 **Push Notifications** via Firebase Messaging.
+- 🧭 **Maps & Location** using Google Maps and Geolocator.
+- 📄 **PDF Generation** to create and print documents.
+- 🌍 **Localization-ready** with `flutter_localizations`.
 
 ---
 
@@ -47,12 +45,12 @@ cam_touch/
 
 ### 1) Prerequisites
 
-تأكد من توفر الأدوات التالية:
+Make sure you have the following tools installed:
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install)
-- [Dart SDK](https://dart.dev/get-dart) (عادةً يأتي مع Flutter)
+- [Dart SDK](https://dart.dev/get-dart) (usually included with Flutter)
 - [Firebase CLI](https://firebase.google.com/docs/cli)
-- حساب Firebase ومشروع مفعل
+- An active Firebase account and project
 
 ### 2) Install dependencies
 
@@ -62,8 +60,8 @@ flutter pub get
 
 ### 3) Configure Firebase
 
-- أضف ملفات إعداد Firebase الخاصة بكل منصة (Android / iOS).
-- تأكد من تفعيل الخدمات المستخدمة (Auth, Firestore, Storage, Messaging, Functions).
+- Add Firebase configuration files for each platform (Android / iOS).
+- Make sure the required services are enabled (Auth, Firestore, Storage, Messaging, Functions).
 
 ### 4) Run the app
 
@@ -75,51 +73,51 @@ flutter run
 
 ## ☁️ Firebase Cloud Functions
 
-مجلد `functions/` يحتوي على Cloud Functions مكتوبة بـ TypeScript.
+The `functions/` folder contains Cloud Functions written in TypeScript.
 
-### تثبيت واعتماد الحزم
+### Install dependencies
 
 ```bash
 cd functions
 npm install
 ```
 
-### النشر
+### Deploy
 
 ```bash
 firebase deploy --only functions
 ```
 
-### التحقق
+### Verification
 
-يمكن التحقق من تشغيل `processPhotographerCheckIn` عبر **Firebase Console Logs** بعد إنشاء مستند في `attendance_records`.
+You can verify that `processPhotographerCheckIn` is running through **Firebase Console Logs** after creating a document in `attendance_records`.
 
 ---
 
 ## 🔒 Firestore Security Rules
 
-ملف `firestore.rules` يحتوي على قواعد تطوير (Development Rules) تسمح لأي مستخدم موثّق بالقراءة والكتابة.
+The `firestore.rules` file currently contains development rules that allow any authenticated user to read and write.
 
-لنشر القواعد:
+To deploy the rules:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
 
-> ⚠️ **تنبيه أمني:** القواعد الحالية مناسبة للتجارب والتطوير فقط. يجب تشديد القواعد قبل الإطلاق في بيئة الإنتاج.
+> ⚠️ **Security Notice:** The current rules are suitable for development and testing only. You should harden them before launching to production.
 
 ---
 
 ## 🧪 Useful Commands
 
 ```bash
-# تحليل الشيفرة
+# Analyze code
 flutter analyze
 
-# تشغيل الاختبارات
+# Run tests
 flutter test
 
-# بناء نسخة إصدار (مثال Android)
+# Build release version (Android example)
 flutter build apk --release
 ```
 
@@ -127,15 +125,15 @@ flutter build apk --release
 
 ## 🤝 Contributing
 
-المساهمات مرحب بها! لاقتراح تحسينات:
+Contributions are welcome! To suggest improvements:
 
-1. اعمل Fork للمشروع
-2. أنشئ فرعًا جديدًا
-3. نفّذ التعديلات مع وصف واضح
-4. افتح Pull Request
+1. Fork the repository
+2. Create a new branch
+3. Implement your changes with a clear description
+4. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-لا يوجد ترخيص محدد حاليًا. يُفضّل إضافة ملف `LICENSE` لتوضيح شروط الاستخدام وإعادة التوزيع.
+No specific license is currently defined. It is recommended to add a `LICENSE` file to clarify usage and redistribution terms.
