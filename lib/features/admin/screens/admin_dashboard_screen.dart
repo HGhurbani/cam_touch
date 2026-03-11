@@ -476,7 +476,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       ),
       _DashboardCard(
         title: 'إدارة المصورين',
-        subtitle: 'إعدادات وخدمات المصورين',
+        subtitle: 'إدارة بيانات المصورين',
         icon: Icons.camera_alt_outlined,
         color: primaryColor,
         onTap: () => Navigator.of(context).pushNamed(AppRouter.adminPhotographersManagementRoute),
@@ -759,7 +759,7 @@ class _DashboardCard extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF024650),
                   ),
